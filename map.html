@@ -1,0 +1,863 @@
+<!DOCTYPE html lang="de-DE">
+<html>
+	
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Slippyspec SDSS DR7</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		 
+		
+		<script src="./map/js/jquery-1.11.0.min.js"></script>
+		<script src="./map/js/jquery-ui.js"></script>
+		
+		<script src="./map/js/leaflet.js"></script>
+		<script src="./map/js/leaflet.draw.js"></script>
+		<script src="./map/js/L.Control.MousePosition.js"></script>
+		<script src="./map/js/helper_functions.js"></script>
+		<script src="./map/js/spectrahandlingfunctions.js"></script>
+		<script src="./map/js/papaparse.min.js"></script>
+		
+
+
+		<!--
+		<script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+		
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" /> 
+		<link rel="stylesheet" href="./leaflet.css" />
+		<link rel="stylesheet" href="./L.Control.MousePosition.css" />
+		-->
+		<link rel="stylesheet" href="./map/css/L.Control.MousePosition.css" />
+		<link rel="stylesheet" href="./map/css/leaflet.css" />
+		<link rel="stylesheet" href="./map/css/leaflet.draw.css" />
+		<link rel="stylesheet" href="./map/css/bootstrap/bootstrap.min.css" />
+		<link rel="stylesheet" href="./map/css/bootstrap/dashboard.css" />
+		<link rel="stylesheet" href="./map/css/jquery-ui.css" />
+	
+			
+		<!--[if lte IE 8]>
+
+		<![endif]-->
+		<style type="text/css" media="screen">
+
+
+			
+			.icon_selected {
+				background:#ff0000;
+				text-align:center;
+				vertical-align:middle;
+				border:1px solid #000;
+				border-radius:20px;
+				line-height:40px;
+			}
+			.icon_unselected {
+				background:#fff;
+				text-align:center;
+				vertical-align:middle;
+				border:1px solid #000;
+				border-radius:20px;
+				line-height:40px;
+			}
+			
+			.leaflet-draw-tooltip {
+				display: none;
+			}
+			
+			
+		</style>
+		
+		<style>
+		        label, input { display:block; }
+			fieldset { padding:0; border:0; margin-top:25px; }
+		</style>
+
+	</head>
+<body>
+
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" id="pagetitle" href="/">An interactive Spectra Map</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li><a href="https://github.com/bloerg/slippyspec">About</a></li>
+            <li><a href="mailto:slippyspec@bloerg.de">Contact</a></li>
+          </ul>
+          
+          <form class="navbar-form navbar-right">
+            <input type="text" class="form-control" placeholder="100, 200" id="goto_map_coordinate_input">
+            <button type="button" class="btn btn-default" id="goto_map_coordinate_button">Go!</button>
+          </form>
+
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid" id="sidebarcontainer">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+
+            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+              <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="headingOne">
+                  <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                      Spectra Coloring
+                    </a>
+                  </h4>
+                </div>
+                
+                <div id="collapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                  <div class="panel-body">
+                    <h5>foreground color</h5>
+                    <div class="input-group input-group-sm">
+                      <input type="text" class="form-control" id="foreground_color_input_field" placeholder="#FF5E5E">
+                      <div class="input-group-btn">
+
+                        <button class="btn btn-default" type="button" id="set_spectrum_foreground_color_button">Set!</button>
+                      </div><!-- /btn-group -->
+                    </div><!-- /input-group -->
+                    <h5>background color</h4>
+                    <div class="input-group input-group-sm">
+                      <input type="text" class="form-control" id="background_color_input_field" placeholder="#FFFF66">
+
+                      <div class="input-group-btn">
+                        
+                        <button class="btn btn-default" type="button" id="set_spectrum_background_color_button">Set!</button>
+
+                      </div><!-- /btn-group -->
+                    </div><!-- /input-group -->                 
+                      
+
+                  </div>
+                </div>
+              </div>
+            </div>   
+            
+
+            <div class="panel-group" id="user_selection_layer_group" role="tablist" aria-multiselectable="true">
+              <div class="panel panel-default">
+                <div class="panel-heading" role="tab" id="headingTwo">
+                  <h4 class="panel-title">
+                    <a data-toggle="collapse2" data-parent="#user_selection_layer_group" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                      User selection layer
+                    </a>
+                  </h4>
+                </div>
+<!--                
+                <div id="collapseTwo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
+                  <div class="panel-body">
+                    <h5>layer name</h5>
+                    <div class="input-group input-group-sm">
+                      <input type="text" class="form-control" id="user_selection_layer_name" placeholder="user selected objects">
+		      
+
+                    </div>
+
+		    <div id="red"></div>
+		    <div id="green"></div>
+		    <div id="blue"></div>
+		     
+		    <div id="swatch" class="ui-widget-content ui-corner-all"></div>
+                  </div>
+
+                </div>
+-->
+		<div id="user_selection_layers">
+		</div>
+		<button type="button" class="btn btn-primary" id="button_add_user_selection_layer" >add layer</button>
+
+              </div>
+            </div> 
+            
+
+          
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main" id="mapcontainer">
+        
+
+	    <div id="map" class="map"></div>
+	</div>
+
+</div>
+
+<div id="dialog_add_user_defined_selection_layer" title="Add new selection layer">
+  <p class="validateTips">All form fields are required.</p>
+ 
+  <form>
+    <fieldset>
+      <label for="user_defined_selection_layer_name">layer name</label>
+      <input type="text" name="user_defined_selection_layer_name" id="user_defined_selection_layer_name" value="" class="text ui-widget-content ui-corner-all">
+      <label for="user_defined_selection_layer_color">layer color</label>
+      <input type="text" name="user_defined_selection_layer_color" id="user_defined_selection_layer_color" value="red" class="text ui-widget-content ui-corner-all">
+      <!-- Allow form submission with keyboard without duplicating the dialog button -->
+      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+    </fieldset>
+  </form>
+</div>
+
+<div id="dialog_csv_import" title="Import CSV to user defined selection">
+  <p class="validateTips">All form fields are required.</p>
+ 
+  <form>
+    <fieldset>
+	<label for="csv_import_textarea">csv data</label>
+	<textarea class="form-control" name="csv_import_textarea" id="csv_import_textarea" rows="3" width="100%" placeholder="paste csv data here"></textarea>
+
+      <!-- Allow form submission with keyboard without duplicating the dialog button -->
+      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+    </fieldset>
+  </form>
+</div>
+
+
+
+
+</body>
+	
+		<script type="text/javascript">
+		    $(function() {
+
+			$( window ).load(function() {
+			     $( "#map" ).css( "height", "95%" );
+			    //$( "#map" ).css( "height", $( "#sidebarcontainer").css("height") );
+			    map.invalidateSize();
+			});
+
+			//<global>
+			MAX_ZOOM = 6;
+			TILE_SIZE = 100;
+			MIN_X = 0;
+			MIN_Y = MIN_X;
+			MAX_X = 40;
+			MAX_Y = MAX_X;
+			PAGE_TITLE = "A Spectra Map"
+			BASE_DIRECTORY = "./som"
+			$.ajax({
+			    url: "./config" + ".json",
+			    type: "GET",
+			    dataType: "json",
+			    async: false,
+			    success: function(data) {
+				if ( data.max_zoom) {
+				    MAX_ZOOM = data.max_zoom
+				}
+				if ( data.tile_size) {
+				    TILE_SIZE = data.tile_size
+				}
+				if ( data.min_x) {
+				    MIN_X = data.min_x
+				}
+				if ( data.max_x) {
+				    MAX_X = data.max_x
+				}
+				if ( data.min_y) {
+				    MIN_Y = data.min_y
+				}
+				if ( data.max_y) {
+				    MAX_Y = data.max_y
+				}
+				if ( data.page_title) {
+				    $("#pagetitle").text(data.page_title)
+				}
+				if ( data.base_directory) {
+				    BASE_DIRECTORY = data.base_directory
+				}
+			    },
+			    error: function(status) {
+				console.log(status);
+			    }
+			});
+			//</global>
+
+
+
+			//map bounds
+			var lefttop = L.latLng(tile2lat(MIN_Y,MAX_ZOOM), tile2long(MIN_X,MAX_ZOOM)),
+			    rightbottom = L.latLng(tile2lat(MAX_Y, MAX_ZOOM), tile2long(MAX_X, MAX_ZOOM)),
+			    mapbounds = L.latLngBounds(lefttop, rightbottom);
+	    
+			var opaque_specs  = L.tileLayer(BASE_DIRECTORY +'/icons/{z}/{x}-{y}.png', {
+				maxZoom: MAX_ZOOM,
+				zoom: 0,
+				noWrap: true,
+				bounds: mapbounds,
+				tileSize: TILE_SIZE
+			    });
+
+			var overlayLayers = new Object();
+			var user_defined_layers = new Object();
+
+
+
+			function get_active_user_selection_layer_name() {
+				var active_user_selection_layer_number = $( "#user_selection_layers" ).accordion( "option", "active" );
+				var active_user_selection_layer = $( "#user_selection_layers > div > div > .layer_name")[active_user_selection_layer_number];
+				return $(active_user_selection_layer).text();
+				
+			};
+
+			function importCSVtoUserDefinedLayer() {
+			    //FIXME: MJD, Plateid, Fiberid-Import und brauchbare sanity checks
+			    var active_user_selection_layer_name = get_active_user_selection_layer_name();
+			    var csv_import = Papa.parse( csv_import_textarea.value, {
+				header: true, 
+				dynamicTyping: true, 
+				skipEmptyLines: true
+			    });
+			    if ((csv_import.data && csv_import.data.length > 0) 
+				&& (csv_import.meta.fields[0] == "som_x" &&  csv_import.meta.fields[1] == "som_y") 
+				|| (csv_import.meta.fields[0] == "som_y" && csv_import.meta.fields[1] == "som_x") 
+			    )
+			    {
+				$.each(csv_import.data, function(key, coordinates) {
+				    var x = coordinates.som_x;
+				    var y = coordinates.som_y;
+				    //FIXME: doppelter code (siehe rectangular marker)
+				    if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x]) {
+					if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y]) {
+					    delete user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y];
+					}
+					else user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
+				    }
+				    else {
+					user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x] = [];
+					//FIXME: doppelter code, siehe ein paar Zeilen vorher
+					user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;					    
+				    };
+				    //FIXME: doppelter code wie bei rectangular marker zu Ende
+				
+				});
+				    
+			    };
+			    dialog_csv_import.dialog( "close" );
+			    if ( map.hasLayer(user_defined_layers[active_user_selection_layer_name]) ) {
+				user_defined_layers[active_user_selection_layer_name].redraw();
+			    };
+			};
+			function addUserDefinedLayerByDialog() {
+			    addUserDefinedLayer(user_defined_selection_layer_name.value, user_defined_selection_layer_color.value);
+			    dialog_add_user_defined_selection_layer.dialog( "close" );
+			    $('#user_selection_layers').accordion("refresh");        
+			    return true;
+			};
+
+			function addUserDefinedLayer(layer_name, layer_color) {
+			    //~ console.log(user_defined_layers);
+		    
+			    user_defined_layers[layer_name] =
+			    new L.tileLayer.canvas({
+				maxZoom: MAX_ZOOM,
+				tileSize: TILE_SIZE,
+				unloadInvisibleTiles: false,
+				nowrap: true,
+				bounds: mapbounds,
+				user_defined_layer_name: layer_name,
+				user_defined_layer_color: layer_color,
+				user_defined_layer_members: []
+			    });
+			    user_defined_layers[layer_name].drawTile = function(canvas, tilePoint, zoom) {
+				var ctx = canvas.getContext('2d');
+				var layer_name = canvas._layer.options.user_defined_layer_name;
+				var number_of_tiles=Math.pow(2,MAX_ZOOM-zoom);
+				var real_x = number_of_tiles*tilePoint.x;
+				var real_y = number_of_tiles*tilePoint.y;
+
+				var som_coordinate_range={
+				    'left':real_x, 
+				    'right':real_x+number_of_tiles, 
+				    'top':real_y, 
+				    'bottom':real_y+number_of_tiles
+				};
+
+				for (var som_x = som_coordinate_range.left; som_x<=som_coordinate_range.right; som_x++) {
+				    for (var som_y = som_coordinate_range.top; som_y<= som_coordinate_range.bottom; som_y++) {
+					if ( user_defined_layers[layer_name].options.user_defined_layer_members[som_x] && user_defined_layers[layer_name].options.user_defined_layer_members[som_x][som_y] ) {
+					    var rescale=Math.pow(0.5,(MAX_ZOOM-zoom));
+					    var xshift=som_x-real_x;
+					    var yshift=som_y-real_y;
+
+
+					    var selection_indicator = "line" //or rectangle
+					    ctx.setTransform(rescale,0,0,rescale,TILE_SIZE*rescale*(xshift),TILE_SIZE*rescale*(yshift));
+					    if (selection_indicator == "rectangle") {
+						//fill background
+						ctx.globalAlpha=0.6;
+						ctx.fillStyle=user_defined_layers[layer_name].options.user_defined_layer_color;
+						//following line for completeley filled tile
+						ctx.fillRect(2,2,TILE_SIZE-4,TILE_SIZE-4);
+					    }
+					    else if (selection_indicator == "line") {
+						ctx.globalAlpha = 1
+						ctx.strokeStyle=user_defined_layers[layer_name].options.user_defined_layer_color;
+						ctx.lineWidth=3;
+						ctx.strokeRect(0,0,TILE_SIZE-ctx.lineWidth,TILE_SIZE-ctx.lineWidth); 
+					    }
+					    
+					};
+				    };
+				};
+			    };
+			    
+			    
+			    overlayLayers[layer_name] = user_defined_layers[layer_name];
+			    var newDiv = 
+				'<div><h3>' + layer_name + '</h3>' +
+				    '<div>' + 
+					'layer name: <span class="layer_name">' + layer_name +'</span><br />' + 
+					'layer color: <span class="layer_color">' + layer_color + '</span><br />' +
+					'<button class=" btn btn-default user_defined_layer_export_button">export to csv</button>' +
+					'<button type="button" class="btn btn-default user_defined_layer_import_button">import from csv</button>' +
+				    '</div>' + 
+				'</div>';
+			    $('#user_selection_layers').append(newDiv)
+			    
+			    $("button.user_defined_layer_export_button").click(function() {
+				//console.log($(this).siblings(".layer_name").text());
+				var export_layer_name = $(this).siblings(".layer_name").text();
+				var json_export_object = {fields: ["som_x", "som_y", "mjd", "plateid", "fiberid"], data: []};
+				$.each(user_defined_layers[export_layer_name].options.user_defined_layer_members, 
+				    function(x, ys) {
+					if (user_defined_layers[export_layer_name].options.user_defined_layer_members[x]) {
+					    $.each(ys, function(y, is_selected) {
+						if (is_selected) {
+						    
+						    $.ajax({
+							url: BASE_DIRECTORY + "/idmapping/" + x + "-" + y + ".json",
+							type: "GET",
+							dataType: "json",
+							async: false,
+							success: function(data) {
+							    if ( data.mjd && data.plateid && data.fiberid ) {
+								json_export_object.data.push([x,y,data.mjd.valueOf(), data.plateid.valueOf(), data.fiberid.valueOf()]);
+							    }
+							    else {
+								json_export_object.data.push([x,y,-1,-1,-1]);
+							    }
+				 
+							},
+							error: function(status) {
+							    json_export_object.data.push([x,y,-1,-1,-1]);
+							}
+						    });
+
+						    //json_export_object.data.push([x,y]);
+						};
+					    });
+					};
+				});
+				console.log(json_export_object);
+				
+				//CSV-Export geklaut von http://jsfiddle.net/hybrid13i/JXrwM/
+				//console.log(Papa.unparse(json_export_object));
+				//Generate a file name
+				var fileName = export_layer_name;
+				
+				//Initialize file format you want csv or xls
+				var uri = 'data:text/csv;charset=utf-8,' + escape(Papa.unparse(json_export_object));
+				
+				// Now the little tricky part.
+				// you can use either>> window.open(uri);
+				// but this will not work in some browsers
+				// or you will not get the correct file extension    
+				
+				//this trick will generate a temp <a /> tag
+				var link = document.createElement("a");    
+				link.href = uri;
+				
+				//set the visibility hidden so it will not effect on your web-layout
+				link.style = "visibility:hidden";
+				link.download = fileName + ".csv";
+				
+				//this part will append the anchor tag and remove it after automatic click
+				document.body.appendChild(link);
+				link.click();
+				document.body.removeChild(link);
+				
+			    });
+			    
+			    $("button.user_defined_layer_import_button").click(function()  {
+				var import_layer_name = $(this).siblings(".layer_name").text();
+				dialog_csv_import.dialog("open");
+			    });
+
+			    LayerControl.addOverlay(user_defined_layers[layer_name], layer_name);
+			};
+			
+			$('#button_add_user_selection_layer').click( function() {
+			    //var newDiv = "<div><h3>Q4 New Question</h3><div>New Content</div></div>";
+			    //$('#user_selection_layers').append(newDiv)
+			    //$('#user_selection_layers').accordion("refresh");        
+			    dialog_add_user_defined_selection_layer.dialog( "open" );
+			});
+
+
+			var dialog_csv_import;
+			dialog_csv_import = $( "#dialog_csv_import" ).dialog({
+			  autoOpen: false,
+			  height: 300,
+			  width: 350,
+			  modal: true,
+			  buttons: {
+			    Import: importCSVtoUserDefinedLayer,
+			    Cancel: function() {
+			      dialog_csv_import.dialog( "close" );
+			    }
+			  },
+			  close: function() {
+			    form_csv_input[ 0 ].reset();
+			  }
+			});
+			var form_csv_input;
+			form_csv_input = dialog_csv_import.find( "form" ).on( "submit", function( event ) {
+			    event.preventDefault();
+			    
+			});
+			
+			var dialog_add_user_defined_selection_layer;
+			dialog_add_user_defined_selection_layer = $( "#dialog_add_user_defined_selection_layer" ).dialog({
+			  autoOpen: false,
+			  height: 300,
+			  width: 350,
+			  modal: true,
+			  buttons: {
+			    Add: addUserDefinedLayerByDialog,
+			    Cancel: function() {
+			      dialog_add_user_defined_selection_layer.dialog( "close" );
+			    }
+			  },
+			  close: function() {
+			    form_add_user_defined_selection_layer[ 0 ].reset();
+			  }
+			});
+			var form_add_user_defined_selection_layer;
+			form_add_user_defined_selection_layer = dialog_add_user_defined_selection_layer.find( "form" ).on( "submit", function( event ) {
+			  event.preventDefault();
+			  addUserDefinedLayerByDialog();
+			});
+			
+
+			var baseLayers = {
+				"opaque Spektren": opaque_specs
+			};
+
+			var map = new L.Map('map', {
+				center: new L.LatLng(tile2lat(MAX_X / 2, MAX_ZOOM), tile2long(MAX_Y / 2, MAX_ZOOM)),
+				minZoom: 0,
+				maxZoom: MAX_ZOOM,
+				zoom: 4,
+				layers: [opaque_specs]
+			});
+
+
+			var popup = L.popup();
+				
+
+				
+
+			function onMapClick(e) {
+			    var som_x = String(long2tile(e.latlng.lng, MAX_ZOOM));
+			    var som_y = String(lat2tile(e.latlng.lat, MAX_ZOOM));
+			    var SOM_keys = [{'som_x':som_x,'som_y':som_y}];
+			    $.ajax({
+				url: BASE_DIRECTORY + "/sdsslinks/" + som_x + "-" + som_y + ".link",
+				type: "GET",
+				dataType: "text",
+				success: function(sdss_data) {
+	    /*                        if (sdss_data.length > 0 && sdss_data[0].mjd && sdss_data[0].plateid && sdss_data[0].fiberid) {
+					var mjd = String(sdss_data[0].mjd);
+					var plateid = String(sdss_data[0].plateid);
+					var fiberid = String(sdss_data[0].fiberid);
+				      
+					var sdss_link='<a href="http://cas.sdss.org/dr7/en/tools/explore/obj.asp?'
+					    + 'plate=' + plateid 
+					    + '&mjd=' + mjd 
+					    + '&fiber=' + fiberid
+					    + '" target="_blank">Explore</a>'
+					
+					var mpf = mjd + "-" + plateid + "-" + fiberid
+					
+					var popupstring = "MJD-Plateid-Fiberid: " + mpf + ", " + sdss_link
+				    
+				    }
+				    else  {
+					var popupstring="Here be dragons."
+				    }
+				    
+				    popup
+				    .setLatLng(e.latlng)
+				    .setContent("X: " + som_x + ", Y: " + som_y + ", " + popupstring)
+				    .openOn(map);
+	    */
+				    popup
+					.setLatLng(e.latlng)
+					.setContent("X: " + som_x + ", Y: " + som_y + ", " + sdss_data)
+					.openOn(map);
+				    
+				    
+
+				},
+				error: function(status) {
+				    popup
+					.setLatLng(e.latlng)
+					.setContent("X: " + som_x + ", Y: " + som_y + ", Here be dragons!")
+					.openOn(map);
+				    console.log("error ", status);
+				}
+				
+			    });                
+			    
+			};
+
+
+
+			map.on('click', onMapClick);
+
+
+			mousePositionControl = new L.control.mousePosition({lngFormatter: function(lng) { return long2tile(lng, MAX_ZOOM)}, latFormatter: function(lat) {return lat2tile(lat, MAX_ZOOM)}, lngFirst: true});
+			mousePositionControl.addTo(map);
+
+//the selectors
+
+			var selectors = new L.FeatureGroup();
+			L.drawLocal.draw.handlers.rectangle.tooltip.start = 'select';
+			//L.drawLocal.draw.handlers.rectangle.tooltip.remove();
+			
+			var selectorControl = new L.Control.Draw({
+			    edit: {
+				featureGroup: selectors
+			    },
+			    draw: {
+				polyline: false,
+				polygon: false,
+				rectangle: { repeatMode: true },
+				circle: false,
+				marker: { repeatMode: true, icon: L.icon({iconUrl: '/map/images/empty_icon.png'})}
+			    },
+			    edit:false
+			});
+			map.addControl(selectorControl);            
+
+			map.on('draw:created', function (e) {
+			    //console.log(e)
+			    var type = e.layerType,
+				layer = e.layer;
+			    //drawnItems.clearLayers();
+			    
+			    if (type === 'rectangle') {
+				//~ var user_selection_layer_name = 'default';
+				//~ var active_user_selection_layer_number = $( "#user_selection_layers" ).accordion( "option", "active" );
+				//~ var active_user_selection_layer = $( "#user_selection_layers > div > div > .layer_name")[active_user_selection_layer_number];
+				//~ user_selection_layer_name = $(active_user_selection_layer).text();
+				
+				var user_selection_layer_name = get_active_user_selection_layer_name();
+				//FIXME: sanity check user_selection_layer_name
+				
+				//~ console.log($( "#user_selection_layers").children().length);
+				//~ console.log($( "#user_selection_layers").children()[0]);
+				//~ console.log($( "#user_selection_layers > div > span > .layer_name").text());
+				//~ $.each( $( "#user_selection_layers > div > span > .layer_name"), function (key, value) {
+				  //~ console.log(key, $(value).text());  
+				//~ });
+				//~ console.log($( "#user_selection_layers").(".layer_name"));
+				
+				
+//</FIXME>
+
+				//Ja, das ist richtig so, dass minx=MAX_X und so weiter ist.
+				var minx = MAX_X;
+				var miny = MAX_Y;
+				var maxx = MIN_X;
+				var maxy = MIN_Y;
+				for (var i = 0; i<=3; i++) {
+				    apoint=layer._latlngs[i];
+				    var x=long2tile(apoint["lng"],MAX_ZOOM);
+				    var y=lat2tile(apoint["lat"],MAX_ZOOM);
+				    if (x < minx) { minx = x };
+				    if (x >= maxx) { maxx = x };
+				    if (y < miny) { miny = y };
+				    if (y >= maxy) { maxy = y };
+				}	
+				if (minx < MIN_X ) { minx = MIN_X };
+				if (miny < MIN_Y ) { miny = MIN_Y };
+
+				for (var x=minx;x<=maxx;x++) {
+				    for (var y=miny;y<=maxy;y++) {
+					if (user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x]) {
+					    if (user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x][y]) {
+						delete user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x][y];
+					    }
+					    else user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
+					}
+					else {
+					    user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x] = [];
+					    //FIXME: doppelter code, siehe ein paar Zeilen vorher
+					    user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x][y] = true;					    
+					};
+				    };
+				};
+
+			    };
+			    
+			    if (type === 'marker') {
+				apoint=layer._latlng;
+				var x=long2tile(apoint["lng"],MAX_ZOOM);
+				var y=lat2tile(apoint["lat"],MAX_ZOOM);
+				
+				var user_selection_layer_name = 'default';
+				var active_user_selection_layer_number = $( "#user_selection_layers" ).accordion( "option", "active" );
+				var active_user_selection_layer = $( "#user_selection_layers > div > div > .layer_name")[active_user_selection_layer_number];
+				user_selection_layer_name = $(active_user_selection_layer).text();
+				
+ 
+				if (x >= MIN_X && x <= MAX_X && y >= MIN_Y && y <= MAX_Y) {
+				    //<FIXME> Doppelter Code (siehe bei rectangle)
+				    if (user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x]) {
+					if (user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x][y]) {
+					    delete user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x][y];
+					}
+					else user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
+				    }
+				    else {
+					user_defined_layers[user_selection_layer_name].options.user_defined_layer_members[x] = [];
+				    };
+				    //</FIXME>
+				};
+			    };
+			    if ( map.hasLayer(user_defined_layers[user_selection_layer_name]) ) {
+				user_defined_layers[user_selection_layer_name].redraw();
+			    };
+
+			});
+
+
+//end the selectors
+
+
+			var LayerControl = new L.control.layers(baseLayers, overlayLayers, {collapsed: true}).addTo(map);	
+			addUserDefinedLayer('default', 'black');
+
+//<user interface>
+			
+		      $(function() {
+			$( "#user_selection_layers" ).accordion({
+			  collapsible: false,
+			  header: "> div > h3"
+			});
+		      });
+		      
+
+
+		    $("#set_spectrum_foreground_color_button").click(function() {
+			var color_to_set = $("#foreground_color_input_field").val()
+			if (color_to_set == "" ) {
+			    spec_foreground_color=$("#foreground_color_input_field").attr("placeholder");
+			}
+			else {
+			    spec_foreground_color=color_to_set;
+			}
+		    }); 
+		    $("#set_spectrum_background_color_button").click(function() {
+			var color_to_set = $("#background_color_input_field").val()
+			if (color_to_set == "" ) {
+			    spec_background_color=$("#background_color_input_field").attr("placeholder");
+			}
+			else {
+			    spec_background_color=color_to_set;
+			}
+		    });
+		    
+		    $("#goto_map_coordinate_button").click(function() {
+			//map.setView(new L.LatLng(tile2lat(123,11), tile2long(456,11)), 11);
+			var xy_array=Papa.parse( $( "#goto_map_coordinate_input" ).val() );
+			if (xy_array.data.length == 0) {
+			    xy_array = Papa.parse( $( "#goto_map_coordinate_input" ).attr("placeholder") );
+			    map.panTo( new L.LatLng( tile2lat(xy_array.data[0][1],MAX_ZOOM), tile2long(xy_array.data[0][0],MAX_ZOOM) ) );
+			}
+			else if(xy_array.data[0] && xy_array.data[0].length == 2) {
+			    map.panTo( new L.LatLng( tile2lat(xy_array.data[0][1],MAX_ZOOM), tile2long(xy_array.data[0][0],MAX_ZOOM) ) );
+			}
+		    });
+
+		    $( "#goto_map_coordinate_input" ).keypress(function( event ) {
+			if ( event.which == 13 ) {
+			    var xy_array=Papa.parse( $( "#goto_map_coordinate_input" ).val() );
+			    if (xy_array.data.length == 0) {
+				xy_array=Papa.parse( $( "#goto_map_coordinate_input" ).attr("placeholder") );
+				map.panTo( new L.LatLng( tile2lat(xy_array.data[0][1],MAX_ZOOM), tile2long(xy_array.data[0][0],MAX_ZOOM) ) );
+			    }
+			    else if(xy_array.data[0] && xy_array.data[0].length == 2) {
+				map.panTo( new L.LatLng( tile2lat(xy_array.data[0][1],MAX_ZOOM), tile2long(xy_array.data[0][0],MAX_ZOOM) ) );
+			    }        
+			}
+		    });
+
+		    $("#csv_import_button").click(function() {
+			var layer_name = $("#add_new_layer_name").val()
+			var csv_import = Papa.parse( $("#csv_import_textarea").val(), {
+			    header: true, 
+			    dynamicTyping: true, 
+			    skipEmptyLines: true
+			});
+			console.log(csv_import.meta.fields)
+			if ((csv_import.data && csv_import.data.length > 0) 
+			    && (csv_import.meta.fields[0] == "som_x" || csv_import.meta.fields[1] == "som_x") 
+			    && (csv_import.meta.fields[0] == "som_y" || csv_import.meta.fields[1] == "som_y")
+			)
+			{
+			    
+			    $.ajax({
+				url: "cgi-bin/adduserdefinedselection.cgi",
+				type: "POST",
+				data: {som_keys:JSON.stringify(csv_import.data), tag: layer_name},
+				dataType: "json",
+				success: function(data) {
+				    console.log(data)
+
+				},
+				error: function(status) {
+				    console.log(status);
+				}
+			    });
+			    
+			}
+			if ((csv_import.data && csv_import.data.length > 0) 
+			    && (csv_import.meta.fields[0] == "mjd" || csv_import.meta.fields[1] == "mjd" || csv_import.meta.fields[2] == "mjd")
+			    && (csv_import.meta.fields[0] == "plateid" || csv_import.meta.fields[1] == "plateid" || csv_import.meta.fields[2] == "plateid")
+			    && (csv_import.meta.fields[0] == "fiberid" || csv_import.meta.fields[1] == "fiberid" || csv_import.meta.fields[2] == "fiberid")
+			)
+			{
+			    $.ajax({
+				url: "cgi-bin/adduserdefinedselection.cgi",
+				type: "POST",
+				data: {spec_ids:JSON.stringify(csv_import.data), tag: layer_name},
+				dataType: "json",
+				success: function(data) {
+				    console.log(data)
+
+				},
+				error: function(status) {
+				    console.log(status);
+				}
+			    });            
+			    
+			}
+		    });	
+//</user interface>		
+			
+	});
+
+
+
+		</script>
+	 
+
+</html>
