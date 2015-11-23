@@ -5,7 +5,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<title>Slippyspec SDSS DR7</title>
+		<title>aspectui</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		 
 		
@@ -88,8 +88,8 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
-            <li><a href="https://github.com/bloerg/slippyspec">About</a></li>
-            <li><a href="mailto:slippyspec@bloerg.de">Contact</a></li>
+            <li><a href="https://github.com/bloerg/aspectui">About</a></li>
+            <li><a href="mailto:dev@bloerg.de">Contact</a></li>
           </ul>
           
           <form class="navbar-form navbar-right">
@@ -620,6 +620,7 @@
 
 
 			map.on('click', onMapClick);
+			map.on('dblclick', console.log('double'))
 
 
 			mousePositionControl = new L.control.mousePosition({lngFormatter: function(lng) { return long2tile(lng, MAX_ZOOM)}, latFormatter: function(lat) {return lat2tile(lat, MAX_ZOOM)}, lngFirst: true});
