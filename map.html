@@ -568,49 +568,42 @@
 			    var som_y = String(lat2tile(e.latlng.lat, MAX_ZOOM));
 			    var SOM_keys = [{'som_x':som_x,'som_y':som_y}];
 			    $.ajax({
-				url: BASE_DIRECTORY + "/sdsslinks/" + som_x + "-" + som_y + ".link",
+				url: BASE_DIRECTORY + "/specmetadata/" + som_x + "-" + som_y + ".json",
 				type: "GET",
-				dataType: "text",
+				dataType: "json",
 				success: function(sdss_data) {
-	    /*                        if (sdss_data.length > 0 && sdss_data[0].mjd && sdss_data[0].plateid && sdss_data[0].fiberid) {
-					var mjd = String(sdss_data[0].mjd);
-					var plateid = String(sdss_data[0].plateid);
-					var fiberid = String(sdss_data[0].fiberid);
-				      
-					var sdss_link='<a href="http://cas.sdss.org/dr7/en/tools/explore/obj.asp?'
-					    + 'plate=' + plateid 
-					    + '&mjd=' + mjd 
-					    + '&fiber=' + fiberid
+				    //~ if (sdss_data.length > 0 && sdss_data[0].mjd && sdss_data[0].plateid && sdss_data[0].fiberid) {
+				    if (sdss_data['mjd']) var mjd = sdss_data['mjd']
+				    if (sdss_data['plateid']) var plateid = sdss_data['plateid']
+				    if (sdss_data['fiberid']) var fiberid = sdss_data['fiberid']
+				    if (sdss_data['som_x']) var som_x = sdss_data['som_x']
+				    if (sdss_data['som_y']) var som_y = sdss_data['som_y']
+				    if (sdss_data['sdsslink']) {
+					var sdss_link = 
+					    '<a href="' + sdss_data['sdsslink']
 					    + '" target="_blank">Explore</a>'
-					
+				    }
+				    
+				    if (sdss_data['mjd'] && mjd == -1) {
+					var popupstring="X: " + som_x + ", Y: " + som_y + " ~ Here be dragons!"
+				    }
+				    else {
+				    
 					var mpf = mjd + "-" + plateid + "-" + fiberid
-					
-					var popupstring = "MJD-Plateid-Fiberid: " + mpf + ", " + sdss_link
-				    
-				    }
-				    else  {
-					var popupstring="Here be dragons."
-				    }
-				    
-				    popup
-				    .setLatLng(e.latlng)
-				    .setContent("X: " + som_x + ", Y: " + som_y + ", " + popupstring)
-				    .openOn(map);
-	    */
+					var popupstring = "X: " + som_x +", Y: " + som_y + ",<br />MJD-Plateid-Fiberid: " + mpf + ",<br />" + sdss_link
+				    }	    
 				    popup
 					.setLatLng(e.latlng)
-					.setContent("X: " + som_x + ", Y: " + som_y + ", " + sdss_data)
+					.setContent(popupstring)
 					.openOn(map);
-				    
-				    
+				    console.log(sdss_data)
 
 				},
 				error: function(status) {
 				    popup
 					.setLatLng(e.latlng)
-					.setContent("X: " + som_x + ", Y: " + som_y + ", Here be dragons!")
+					.setContent("X: " + som_x + ", Y: " + som_y + " ~ Here be dragons!")
 					.openOn(map);
-				    console.log("error ", status);
 				}
 				
 			    });                
