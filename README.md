@@ -1,2 +1,2 @@
 # aspectui
-a responsive web browser ui for outputs Kohonen Maps computed with ASPECT (A Spectra Clustering Tool)
+a responsive web browser ui for Kohonen Maps computed with ASPECT (A Spectra Clustering Tool)
