@@ -794,57 +794,7 @@
 			}
 		    });
 
-		    $("#csv_import_button").click(function() {
-			var layer_name = $("#add_new_layer_name").val()
-			var csv_import = Papa.parse( $("#csv_import_textarea").val(), {
-			    header: true, 
-			    dynamicTyping: true, 
-			    skipEmptyLines: true
-			});
-			console.log(csv_import.meta.fields)
-			if ((csv_import.data && csv_import.data.length > 0) 
-			    && (csv_import.meta.fields[0] == "som_x" || csv_import.meta.fields[1] == "som_x") 
-			    && (csv_import.meta.fields[0] == "som_y" || csv_import.meta.fields[1] == "som_y")
-			)
-			{
-			    
-			    $.ajax({
-				url: "cgi-bin/adduserdefinedselection.cgi",
-				type: "POST",
-				data: {som_keys:JSON.stringify(csv_import.data), tag: layer_name},
-				dataType: "json",
-				success: function(data) {
-				    console.log(data)
-
-				},
-				error: function(status) {
-				    console.log(status);
-				}
-			    });
-			    
-			}
-			if ((csv_import.data && csv_import.data.length > 0) 
-			    && (csv_import.meta.fields[0] == "mjd" || csv_import.meta.fields[1] == "mjd" || csv_import.meta.fields[2] == "mjd")
-			    && (csv_import.meta.fields[0] == "plateid" || csv_import.meta.fields[1] == "plateid" || csv_import.meta.fields[2] == "plateid")
-			    && (csv_import.meta.fields[0] == "fiberid" || csv_import.meta.fields[1] == "fiberid" || csv_import.meta.fields[2] == "fiberid")
-			)
-			{
-			    $.ajax({
-				url: "cgi-bin/adduserdefinedselection.cgi",
-				type: "POST",
-				data: {spec_ids:JSON.stringify(csv_import.data), tag: layer_name},
-				dataType: "json",
-				success: function(data) {
-				    console.log(data)
-
-				},
-				error: function(status) {
-				    console.log(status);
-				}
-			    });            
-			    
-			}
-		    });	
+	
 //</user interface>		
 			
 	});
