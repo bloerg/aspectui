@@ -459,8 +459,6 @@
 							    json_export_object.data.push([x,y,-1,-1,-1]);
 							}
 						    });
-
-						    //json_export_object.data.push([x,y]);
 						};
 					    });
 					};
@@ -504,9 +502,6 @@
 			};
 			
 			$('#button_add_user_selection_layer').click( function() {
-			    //var newDiv = "<div><h3>Q4 New Question</h3><div>New Content</div></div>";
-			    //$('#user_selection_layers').append(newDiv)
-			    //$('#user_selection_layers').accordion("refresh");        
 			    dialog_add_user_defined_selection_layer.dialog( "open" );
 			});
 
@@ -626,7 +621,9 @@
 					    };
 					};
 					if ( map.hasLayer(user_defined_layers['Explorer Click']) ) {
-					    user_defined_layers['Explorer Click'].redraw();
+					    //user_defined_layers['Explorer Click'].redraw();
+					    map.removeLayer(user_defined_layers['Explorer Click'])
+					    map.addLayer(user_defined_layers['Explorer Click'])
 					};
 					//</FIXME>
 					map.removeLayer(popup)
