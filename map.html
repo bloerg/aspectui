@@ -580,10 +580,9 @@
 				    if (sdss_data['som_y']) var som_y = sdss_data['som_y']
 				    if (sdss_data['sdsslink']) {
 					var sdss_link = 
-					    '<a href="' + sdss_data['sdsslink']
+					    '<a id="a_sdsslink" href="' + sdss_data['sdsslink']
 					    + '" target="_blank">Explore</a>'
 				    }
-				    
 				    if (sdss_data['mjd'] && mjd == -1) {
 					var popupstring="X: " + som_x + ", Y: " + som_y + " ~ Here be dragons!"
 				    }
@@ -596,7 +595,10 @@
 					.setLatLng(e.latlng)
 					.setContent(popupstring)
 					.openOn(map);
-				    console.log(sdss_data)
+				    $('#a_sdsslink').click( function() {
+					map.removeLayer(popup)
+				    });
+				    
 
 				},
 				error: function(status) {
