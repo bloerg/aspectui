@@ -1,0 +1,7 @@
+site_name: ASPECT UI Documentation
+pages:
+- Home: index.md
+- About: about.md
+- User Interface: userinterface.md
+- Related Tools: cmdline.md
+theme: readthedocs
