@@ -285,13 +285,31 @@
 			    rightbottom = L.latLng(tile2lat(MAX_Y, MAX_ZOOM), tile2long(MAX_X, MAX_ZOOM)),
 			    mapbounds = L.latLngBounds(lefttop, rightbottom);
 	    
-			var opaque_specs  = L.tileLayer(BASE_DIRECTORY +'/icons/{z}/{x}-{y}.png', {
+			//~ var opaque_specs  = L.tileLayer(BASE_DIRECTORY +'/icons/{z}/{x}-{y}.png', {
+				//~ maxZoom: MAX_ZOOM,
+				//~ zoom: 0,
+				//~ noWrap: true,
+				//~ bounds: mapbounds,
+				//~ tileSize: TILE_SIZE
+			    //~ });
+			    
+			var opaque_specs = new L.tileLayer.canvas({
 				maxZoom: MAX_ZOOM,
-				zoom: 0,
-				noWrap: true,
+				tileSize: TILE_SIZE,
+				unloadInvisibleTiles: true,
+				nowrap: true,
 				bounds: mapbounds,
-				tileSize: TILE_SIZE
-			    });
+			});
+
+			opaque_specs.drawTile = function(canvas, tilePoint, zoom) {
+			    var ctx = canvas.getContext('2d');
+			    var spectrum_image = new Image();
+			    spectrum_image.onload = function() {
+			      ctx.drawImage(this, 0, 0);
+			    };
+			    spectrum_image.src = BASE_DIRECTORY +'/icons/' + zoom + '/' + tilePoint.x+'-'+tilepoint.y+'.png';
+
+			
 
 			var overlayLayers = new Object();
 			var user_defined_layers = new Object();
