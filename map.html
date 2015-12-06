@@ -292,8 +292,12 @@
 				//~ bounds: mapbounds,
 				//~ tileSize: TILE_SIZE
 			    //~ });
+
+			var overlayLayers = new Object();
+			var user_defined_layers = new Object();
+			
 			    
-			var opaque_specs = new L.tileLayer.canvas({
+			var spectra_layer = new L.tileLayer.canvas({
 				maxZoom: MAX_ZOOM,
 				tileSize: TILE_SIZE,
 				unloadInvisibleTiles: true,
@@ -301,20 +305,28 @@
 				bounds: mapbounds,
 			});
 
-			opaque_specs.drawTile = function(canvas, tilePoint, zoom) {
+			spectra_layer.drawTile = function(canvas, tilePoint, zoom) {
 			    var ctx = canvas.getContext('2d');
 			    var spectrum_image = new Image();
 			    spectrum_image.onload = function() {
-			      ctx.drawImage(this, 0, 0);
+				ctx.drawImage(this, 0, 0);
+				var spectrum_image = ctx.getImageData(0,0,canvas.width, canvas.height);
+				var spectrum_image_pixels = spectrum_image.data;
+				var rgb_foreground = $("#foreground_color_input_field").css("color").replace(/^rgba?\(|\s+|\)$/g,'').split(',');
+				for (var pixel_index = 0; pixel_index < spectrum_image_pixels.length; pixel_index += 4) {
+				    if (spectrum_image_pixels[pixel_index + 3] > 0) {
+					spectrum_image_pixels[pixel_index] = rgb_foreground[0]
+					spectrum_image_pixels[pixel_index + 1] = rgb_foreground[1]
+					spectrum_image_pixels[pixel_index + 2] = rgb_foreground[2]
+				    }
+				}
+				ctx.putImageData(spectrum_image, 0, 0)
 			    };
 			    spectrum_image.src = BASE_DIRECTORY +'/icons/' + zoom + '/' + tilePoint.x+'-'+tilePoint.y+'.png';
 			};
-			
-
-			var overlayLayers = new Object();
-			var user_defined_layers = new Object();
 
 
+			overlayLayers['spectra icons'] = spectra_layer;
 
 			function get_active_user_selection_layer_name() {
 				var active_user_selection_layer_number = $( "#user_selection_layers" ).accordion( "option", "active" );
@@ -570,7 +582,7 @@
 			
 
 			var baseLayers = {
-				"opaque Spektren": opaque_specs
+				//"opaque Spektren": opaque_specs
 			};
 
 			var map = new L.Map('map', {
@@ -578,7 +590,7 @@
 				minZoom: 0,
 				maxZoom: MAX_ZOOM,
 				zoom: 4,
-				layers: [opaque_specs]
+				layers: [spectra_layer]
 			});
 
 
@@ -805,19 +817,19 @@
 		    $("#set_spectrum_foreground_color_button").click(function() {
 			var color_to_set = $("#foreground_color_input_field").val()
 			if (color_to_set == "" ) {
-			    spec_foreground_color=$("#foreground_color_input_field").attr("placeholder");
+			    $("#foreground_color_input_field").css("color", $("#foreground_color_input_field").attr("placeholder"));
 			}
 			else {
-			    spec_foreground_color=color_to_set;
+			    $("#foreground_color_input_field").css("color", $("#foreground_color_input_field").val())
 			}
 		    }); 
 		    $("#set_spectrum_background_color_button").click(function() {
 			var color_to_set = $("#background_color_input_field").val()
 			if (color_to_set == "" ) {
-			    spec_background_color=$("#background_color_input_field").attr("placeholder");
+			    $("#background_color_input_field").css("background-color", $("#background_color_input_field").attr("placeholder"));
 			}
 			else {
-			    spec_background_color=color_to_set;
+			    $("#background_color_input_field").css("background-color", $("#background_color_input_field").val())
 			}
 		    });
 		    
