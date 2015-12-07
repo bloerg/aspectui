@@ -319,7 +319,7 @@
 			var spec_exist_layer = new L.tileLayer.canvas({
 				maxZoom: MAX_ZOOM,
 				tileSize: TILE_SIZE,
-				unloadInvisibleTiles: true,
+				unloadInvisibleTiles: false,
 				nowrap: true,
 				bounds: mapbounds,
 			});
@@ -359,7 +359,7 @@
 			var spec_redshift_layer = new L.tileLayer.canvas({
 				maxZoom: MAX_ZOOM,
 				tileSize: TILE_SIZE,
-				unloadInvisibleTiles: true,
+				unloadInvisibleTiles: false,
 				nowrap: true,
 				bounds: mapbounds,
 			});
@@ -815,26 +815,8 @@
 			    //drawnItems.clearLayers();
 			    
 			    if (type === 'rectangle') {
-				//~ var user_selection_layer_name = 'default';
-				//~ var active_user_selection_layer_number = $( "#user_selection_layers" ).accordion( "option", "active" );
-				//~ var active_user_selection_layer = $( "#user_selection_layers > div > div > .layer_name")[active_user_selection_layer_number];
-				//~ user_selection_layer_name = $(active_user_selection_layer).text();
-				
 				var user_selection_layer_name = get_active_user_selection_layer_name();
-				//FIXME: sanity check user_selection_layer_name
-				
-				//~ console.log($( "#user_selection_layers").children().length);
-				//~ console.log($( "#user_selection_layers").children()[0]);
-				//~ console.log($( "#user_selection_layers > div > span > .layer_name").text());
-				//~ $.each( $( "#user_selection_layers > div > span > .layer_name"), function (key, value) {
-				  //~ console.log(key, $(value).text());  
-				//~ });
-				//~ console.log($( "#user_selection_layers").(".layer_name"));
-				
-				
-//</FIXME>
-
-				//Ja, das ist richtig so, dass minx=MAX_X und so weiter ist.
+			    //Ja, das ist richtig so, dass minx=MAX_X und so weiter ist.
 				var minx = MAX_X;
 				var miny = MAX_Y;
 				var maxx = MIN_X;
@@ -906,7 +888,7 @@
 
 
 			var LayerControl = new L.control.layers(baseLayers, overlayLayers, {collapsed: true}).addTo(map);	
-			addUserDefinedLayer('default', 'black', 'line');
+			addUserDefinedLayer('default selections', 'black', 'line');
 			addUserDefinedLayer('Explorer Click', 'red', 'explored');
 			
 			
