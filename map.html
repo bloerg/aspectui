@@ -285,18 +285,9 @@
 			    rightbottom = L.latLng(tile2lat(MAX_Y, MAX_ZOOM), tile2long(MAX_X, MAX_ZOOM)),
 			    mapbounds = L.latLngBounds(lefttop, rightbottom);
 	    
-			//~ var opaque_specs  = L.tileLayer(BASE_DIRECTORY +'/icons/{z}/{x}-{y}.png', {
-				//~ maxZoom: MAX_ZOOM,
-				//~ zoom: 0,
-				//~ noWrap: true,
-				//~ bounds: mapbounds,
-				//~ tileSize: TILE_SIZE
-			    //~ });
-
 			var overlayLayers = new Object();
 			var user_defined_layers = new Object();
-			
-			    
+
 			var spectra_layer = new L.tileLayer.canvas({
 				maxZoom: MAX_ZOOM,
 				tileSize: TILE_SIZE,
@@ -360,11 +351,71 @@
 					};
 				    };
 
-				},
-				error: function(status) {
-				    console.log("error ", status);
 				}
 				
+			    });
+			};
+
+			var spec_redshift_layer = new L.tileLayer.canvas({
+				maxZoom: MAX_ZOOM,
+				tileSize: TILE_SIZE,
+				unloadInvisibleTiles: true,
+				nowrap: true,
+				bounds: mapbounds,
+			});
+
+
+			//FIXME: the ranges for z-bins are hard coded
+			spec_redshift_layer.drawTile = function(canvas, tilePoint, zoom) {
+			    var ctx = canvas.getContext('2d');
+
+			    var number_of_tiles=Math.pow(2,MAX_ZOOM-zoom)
+			    var real_x = number_of_tiles*tilePoint.x;
+			    var real_y = number_of_tiles*tilePoint.y;
+
+ 
+			    var SOM_key_range={'left':real_x, 'right':real_x+number_of_tiles, 'top':real_y, 'bottom':real_y+number_of_tiles}
+			    $.ajax({
+				url: BASE_DIRECTORY + "/datalayers/z/" + zoom + "/" + tilePoint.x + "-" + tilePoint.y + ".json",
+				type: "GET",
+				dataType: "json",
+				success: function(data) {
+				    if (data.length > 0) {
+					for (var i=0;i<data.length;i++) {
+					    
+					    var redshift = data[i].val
+					    console.log(redshift, data.val)
+					    if (redshift == 0.0) {
+						var color = "(0,0,0)"
+					    }
+					    if (redshift < 0) {
+						//var color = rgb(255,Math.floor(255/2.0*Math.abs(data.z)),Math.floor(TILE_SIZE/2.0*Math.abs(z)))
+						var color = "rgb(150,150,150)";
+					    }
+					    if ( (redshift > 0) && (redshift < 0.1) ) {
+						var color = "rgb(" + Math.floor(255/0.1*Math.abs(redshift)) + ",0,0)";
+					    }
+					    if ( (redshift > 0.1) && (redshift < 0.5) ) {
+						var color = "rgb(255," + Math.floor(255/0.5*Math.abs(redshift)) + ",0)";
+					    }
+					    if (redshift > 0.5) {
+						var color = "rgb(255,255," + Math.floor(255.0/7*Math.abs(redshift)) + ")";
+					    }
+					    
+					    console.log(color)
+					    
+					    var rescale=Math.pow(0.5,(MAX_ZOOM-zoom));
+					    var xshift=data[i].x-real_x;
+					    var yshift=data[i].y-real_y;
+					    //fill background
+	    
+					    ctx.setTransform(rescale,0,0,rescale,TILE_SIZE*rescale*(xshift),TILE_SIZE*rescale*(yshift));
+					    ctx.fillStyle = color;
+					    ctx.fillRect(2,2,TILE_SIZE-4,TILE_SIZE-4);
+					};
+				    };
+
+				}
 			    });
 			};
 
@@ -636,7 +687,8 @@
 
 			var baseLayers = {
 				//"opaque Spektren": opaque_specs
-				"colored layer background": spec_exist_layer
+				"colored background": spec_exist_layer,
+				"redshift": spec_redshift_layer
 			};
 
 			var map = new L.Map('map', {
