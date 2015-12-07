@@ -290,6 +290,7 @@
 
 			var spectra_layer = new L.tileLayer.canvas({
 				maxZoom: MAX_ZOOM,
+				minZoom: 6,
 				tileSize: TILE_SIZE,
 				unloadInvisibleTiles: true,
 				nowrap: true,
@@ -319,7 +320,7 @@
 			var spec_exist_layer = new L.tileLayer.canvas({
 				maxZoom: MAX_ZOOM,
 				tileSize: TILE_SIZE,
-				unloadInvisibleTiles: false,
+				unloadInvisibleTiles: true,
 				nowrap: true,
 				bounds: mapbounds,
 			});
@@ -384,7 +385,6 @@
 					for (var i=0;i<data.length;i++) {
 					    
 					    var redshift = data[i].val
-					    console.log(redshift, data.val)
 					    if (redshift == 0.0) {
 						var color = "(0,0,0)"
 					    }
@@ -401,9 +401,6 @@
 					    if (redshift > 0.5) {
 						var color = "rgb(255,255," + Math.floor(255.0/7*Math.abs(redshift)) + ")";
 					    }
-					    
-					    console.log(color)
-					    
 					    var rescale=Math.pow(0.5,(MAX_ZOOM-zoom));
 					    var xshift=data[i].x-real_x;
 					    var yshift=data[i].y-real_y;
@@ -522,7 +519,7 @@
 					    else if (layer_marker == "line") {
 						ctx.globalAlpha = 1
 						ctx.strokeStyle=user_defined_layers[layer_name].options.user_defined_layer_color;
-						ctx.lineWidth=3;
+						ctx.lineWidth=4;
 						ctx.strokeRect(0,0,TILE_SIZE-ctx.lineWidth,TILE_SIZE-ctx.lineWidth); 
 					    }
 					    else if (layer_marker =="cross") {
@@ -781,7 +778,7 @@
 
 
 			map.on('click', onMapClick);
-			map.on('dblclick', console.log('double'))
+
 
 
 			mousePositionControl = new L.control.mousePosition({lngFormatter: function(lng) { return long2tile(lng, MAX_ZOOM)}, latFormatter: function(lat) {return lat2tile(lat, MAX_ZOOM)}, lngFirst: true});
@@ -802,7 +799,7 @@
 				polygon: false,
 				rectangle: { repeatMode: true },
 				circle: false,
-				marker: { repeatMode: true, icon: L.icon({iconUrl: '/map/images/empty_icon.png'})}
+				marker: { repeatMode: true, icon: L.icon({iconUrl: './map/images/empty_icon.png'})}
 			    },
 			    edit:false
 			});
