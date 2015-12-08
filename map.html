@@ -434,30 +434,76 @@
 				dynamicTyping: true, 
 				skipEmptyLines: true
 			    });
-			    if ((csv_import.data && csv_import.data.length > 0) 
-				&& (csv_import.meta.fields[0] == "som_x" &&  csv_import.meta.fields[1] == "som_y") 
-				|| (csv_import.meta.fields[0] == "som_y" && csv_import.meta.fields[1] == "som_x") 
-			    )
-			    {
-				$.each(csv_import.data, function(key, coordinates) {
-				    var x = coordinates.som_x;
-				    var y = coordinates.som_y;
-				    //FIXME: doppelter code (siehe rectangular marker)
-				    if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x]) {
-					if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y]) {
-					    delete user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y];
+			    if (csv_import.data && csv_import.data.length > 0) {
+				if ( $.inArray("som_x", csv_import.meta.fields) > -1 &&
+				     $.inArray("som_y", csv_import.meta.fields) > -1
+				)
+				{
+				    $.each(csv_import.data, function(key, coordinates) {
+					var x = coordinates.som_x;
+					var y = coordinates.som_y;
+					//FIXME: doppelter code (siehe rectangular marker)
+					if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x]) {
+					    if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y]) {
+						delete user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y];
+					    }
+					    else user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
 					}
-					else user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
-				    }
-				    else {
-					user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x] = [];
-					//FIXME: doppelter code, siehe ein paar Zeilen vorher
-					user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;					    
-				    };
-				    //FIXME: doppelter code wie bei rectangular marker zu Ende
-				
-				});
+					else {
+					    user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x] = [];
+					    //FIXME: doppelter code, siehe ein paar Zeilen vorher
+					    user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;					    
+					};
+					//FIXME: doppelter code wie bei rectangular marker zu Ende
 				    
+				    });
+					
+				};
+
+				if ($.inArray("mjd", csv_import.meta.fields) > -1 && 
+				    $.inArray("plateid", csv_import.meta.fields) > -1 &&
+				    $.inArray("fiberid", csv_import.meta.fields) > -1
+				)
+				{ 
+				    $.each(csv_import.data, function(key, sdss_ids) {
+
+					var mjd=sdss_ids.mjd;
+					var plateid=sdss_ids.plateid;
+					var fiberid=sdss_ids.fiberid;
+
+					$.ajax({
+					    url: BASE_DIRECTORY + "/idmapping/" + mjd + "-" + plateid + "-" + fiberid + ".json",
+					    type: "GET",
+					    dataType: "json",
+					    async: false,
+					    success: function(data) {
+						//~ if ( data.som_x && data.som_y) {
+						    console.log(data)
+						    var x = data.som_x;
+						    var y = data.som_y;
+						    //FIXME: doppelter code (siehe rectangular marker)
+						    if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x]) {
+							if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y]) {
+							    delete user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y];
+							}
+							else user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
+						    }
+						    else {
+							user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x] = [];
+							//FIXME: doppelter code, siehe ein paar Zeilen vorher
+							user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;					    
+						    };
+						    //FIXME: doppelter code wie bei rectangular marker zu Ende
+    
+						//~ }
+	     
+					    },
+					    error: function(status) {
+						console.log(status);
+					    }
+					});
+				    });
+				};
 			    };
 			    dialog_csv_import.dialog( "close" );
 			    if ( map.hasLayer(user_defined_layers[active_user_selection_layer_name]) ) {
@@ -887,6 +933,7 @@
 			var LayerControl = new L.control.layers(baseLayers, overlayLayers, {collapsed: true}).addTo(map);	
 			addUserDefinedLayer('default selections', 'black', 'line');
 			addUserDefinedLayer('Explorer Click', 'red', 'explored');
+			
 			
 			
 			//initialize colors
