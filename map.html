@@ -543,10 +543,10 @@ $(function() {
 			    ctx.fillRect(2,2,TILE_SIZE-4,TILE_SIZE-4);
 			}
 			else if (layer_marker == "line") {
-			    ctx.globalAlpha = 1
+			    ctx.globalAlpha = 0.6
 			    ctx.strokeStyle=user_defined_layers[layer_name].options.user_defined_layer_color;
-			    ctx.lineWidth=4;
-			    ctx.strokeRect(0,0,TILE_SIZE-ctx.lineWidth,TILE_SIZE-ctx.lineWidth); 
+			    ctx.lineWidth=TILE_SIZE/8;
+			    ctx.strokeRect(ctx.lineWidth/2 + 2,ctx.lineWidth/2 + 2,TILE_SIZE-ctx.lineWidth-2,TILE_SIZE-ctx.lineWidth-2); 
 			}
 			else if (layer_marker =="cross") {
 			    ctx.globalAlpha=0.6;
