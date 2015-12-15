@@ -295,7 +295,7 @@ $(function() {
 
     var spectra_layer = new L.tileLayer.canvas({
 	    maxZoom: MAX_ZOOM,
-	    minZoom: 6,
+	    minZoom: Math.max(MAX_ZOOM - 7, 0),
 	    tileSize: TILE_SIZE,
 	    unloadInvisibleTiles: true,
 	    nowrap: true,
