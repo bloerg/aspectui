@@ -18,16 +18,8 @@
     <script src="./map/js/helper_functions.js"></script>
     <script src="./map/js/spectrahandlingfunctions.js"></script>
     <script src="./map/js/papaparse.min.js"></script>
-    
-
-
-    <!--
-    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-    
-    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.5.1/leaflet.css" /> 
-    <link rel="stylesheet" href="./leaflet.css" />
-    <link rel="stylesheet" href="./L.Control.MousePosition.css" />
-    -->
+ 
+ 
     <link rel="stylesheet" href="./map/css/L.Control.MousePosition.css" />
     <link rel="stylesheet" href="./map/css/leaflet.css" />
     <link rel="stylesheet" href="./map/css/leaflet.draw.css" />
@@ -152,25 +144,6 @@
                     </a>
                   </h4>
                 </div>
-<!--                
-                <div id="collapseTwo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingTwo">
-                  <div class="panel-body">
-                    <h5>layer name</h5>
-                    <div class="input-group input-group-sm">
-                      <input type="text" class="form-control" id="user_selection_layer_name" placeholder="user selected objects">
-		      
-
-                    </div>
-
-		    <div id="red"></div>
-		    <div id="green"></div>
-		    <div id="blue"></div>
-		     
-		    <div id="swatch" class="ui-widget-content ui-corner-all"></div>
-                  </div>
-
-                </div>
--->
 		<div id="user_selection_layers">
 		</div>
 		<button type="button" class="btn btn-primary" id="button_add_user_selection_layer" >add layer</button>
@@ -228,7 +201,6 @@ $(function() {
 
     $( window ).load(function() {
 	 $( "#map" ).css( "height", "95%" );
-	//$( "#map" ).css( "height", $( "#sidebarcontainer").css("height") );
 	map.invalidateSize();
     });
 
@@ -346,12 +318,12 @@ $(function() {
 		url: BASE_DIRECTORY + "/datalayers/z/" + zoom + "/" + tilePoint.x + "-" + tilePoint.y + ".json",
 		type: "GET",
 		dataType: "json",
-		success: function(data) {
-		    if (data.length > 0) {
-			for (var i=0;i<data.length;i++) {
+		success: function(json) {
+		    if (json.data) {
+			for (var i=0;i<json.data.length;i++) {
 			    var rescale=Math.pow(0.5,(MAX_ZOOM-zoom));
-			    var xshift=data[i].x-real_x;
-			    var yshift=data[i].y-real_y;
+			    var xshift=json.data[i].x-real_x;
+			    var yshift=json.data[i].y-real_y;
 			    //fill background
 
 			    ctx.setTransform(rescale,0,0,rescale,TILE_SIZE*rescale*(xshift),TILE_SIZE*rescale*(yshift));
@@ -388,11 +360,11 @@ $(function() {
 		url: BASE_DIRECTORY + "/datalayers/z/" + zoom + "/" + tilePoint.x + "-" + tilePoint.y + ".json",
 		type: "GET",
 		dataType: "json",
-		success: function(data) {
-		    if (data.length > 0) {
-			for (var i=0;i<data.length;i++) {
+		success: function(json) {
+		    if (json.data) {
+			for (var i=0;i<json.data.length;i++) {
 			    
-			    var redshift = data[i].val
+			    var redshift = json.data[i].val
 			    if (redshift == 0.0) {
 				var color = "(0,0,0)"
 			    }
@@ -410,8 +382,8 @@ $(function() {
 				var color = "rgb(255,255," + Math.floor(255.0/7*Math.abs(redshift)) + ")";
 			    }
 			    var rescale=Math.pow(0.5,(MAX_ZOOM-zoom));
-			    var xshift=data[i].x-real_x;
-			    var yshift=data[i].y-real_y;
+			    var xshift=json.data[i].x-real_x;
+			    var yshift=json.data[i].y-real_y;
 			    //fill background
 
 			    ctx.setTransform(rescale,0,0,rescale,TILE_SIZE*rescale*(xshift),TILE_SIZE*rescale*(yshift));
@@ -435,7 +407,7 @@ $(function() {
     };
 
     function importCSVtoUserDefinedLayer() {
-	//FIXME: MJD, Plateid, Fiberid-Import und brauchbare sanity checks
+	//FIXME: sanity checks
 	var active_user_selection_layer_name = get_active_user_selection_layer_name();
 	var csv_import = Papa.parse( csv_import_textarea.value, {
 	    header: true, 
