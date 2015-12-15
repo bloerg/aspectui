@@ -242,7 +242,7 @@ $(function() {
     PAGE_TITLE = "A Spectra Map";
     BASE_DIRECTORY = "./som";
     HAS_NO_BACKGROUND = false;
-    $.ajax(					{
+    $.ajax({
 	url: "./config" + ".json",
 	type: "GET",
 	dataType: "json",
@@ -308,13 +308,15 @@ $(function() {
 	spectrum_image.onload = function() {
 	    ctx.drawImage(this, 0, 0);
 	    var spectrum_image = ctx.getImageData(0,0,canvas.width, canvas.height);
-	    var spectrum_image_pixels = spectrum_image.data;
-	    var rgb_foreground = $("#foreground_color_input_field").css("color").replace(/^rgba?\(|\s+|\)$/g,'').split(',');
-	    for (var pixel_index = 0; pixel_index < spectrum_image_pixels.length; pixel_index += 4) {
-		if (spectrum_image_pixels[pixel_index + 3] > 0) {
-		    spectrum_image_pixels[pixel_index] = rgb_foreground[0]
-		    spectrum_image_pixels[pixel_index + 1] = rgb_foreground[1]
-		    spectrum_image_pixels[pixel_index + 2] = rgb_foreground[2]
+	    if (! HAS_NO_BACKGROUND ) {
+		var spectrum_image_pixels = spectrum_image.data;
+		var rgb_foreground = $("#foreground_color_input_field").css("color").replace(/^rgba?\(|\s+|\)$/g,'').split(',');
+		for (var pixel_index = 0; pixel_index < spectrum_image_pixels.length; pixel_index += 4) {
+		    if (spectrum_image_pixels[pixel_index + 3] > 0) {
+			spectrum_image_pixels[pixel_index] = rgb_foreground[0]
+			spectrum_image_pixels[pixel_index + 1] = rgb_foreground[1]
+			spectrum_image_pixels[pixel_index + 2] = rgb_foreground[2]
+		    }
 		}
 	    }
 	    ctx.putImageData(spectrum_image, 0, 0)
@@ -423,7 +425,7 @@ $(function() {
 	};
     };
 
-    overlayLayers['spectra icons'] = spectra_layer;
+
 
     function get_active_user_selection_layer_name() {
 	    var active_user_selection_layer_number = $( "#user_selection_layers" ).accordion( "option", "active" );
@@ -733,26 +735,16 @@ $(function() {
       addUserDefinedLayerByDialog();
     });
     
-
-    var baseLayers = {
-	    //"opaque Spektren": opaque_specs
-	    "colored background": spec_exist_layer,
-	    "redshift": spec_redshift_layer
-    };
-
     var map = new L.Map('map', {
 	    center: new L.LatLng(tile2lat(MAX_X / 2, MAX_ZOOM), tile2long(MAX_Y / 2, MAX_ZOOM)),
 	    minZoom: 0,
 	    maxZoom: MAX_ZOOM,
 	    zoom: 4,
-	    layers: [spectra_layer, spec_exist_layer]
     });
     map.attributionControl.setPrefix('<a href="http://aspect-ui.de/" target="_blank">ASPECT-ui</a>');
 
     var popup = L.popup();
-			
 
-			
 
     function onMapClick(e) {
 	var som_x = String(long2tile(e.latlng.lng, MAX_ZOOM));
@@ -935,6 +927,23 @@ $(function() {
 
 //end the selectors
 
+
+    console.log("has_no_background", HAS_NO_BACKGROUND);
+    if (HAS_NO_BACKGROUND) {
+	spectra_layer.addTo(map);
+	var baseLayers = {
+	    "spectra layer": spectra_layer
+	}
+    }
+    else {
+	spectra_layer.addTo(map);
+	spec_exist_layer.addTo(map);
+	overlayLayers['spectra icons'] = spectra_layer;
+	var baseLayers = {
+	    "colored background": spec_exist_layer,
+	    "redshift": spec_redshift_layer
+	};
+    }
 
     var LayerControl = new L.control.layers(baseLayers, overlayLayers, {collapsed: true}).addTo(map);	
     addUserDefinedLayer('default selections', 'black', 'line');
