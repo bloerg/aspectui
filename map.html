@@ -239,8 +239,9 @@
 			MIN_Y = MIN_X;
 			MAX_X = 40;
 			MAX_Y = MAX_X;
-			PAGE_TITLE = "A Spectra Map"
-			BASE_DIRECTORY = "./som"
+			PAGE_TITLE = "A Spectra Map";
+			BASE_DIRECTORY = "./som";
+			HAS_NO_BACKGROUND = false;
 			$.ajax({
 			    url: "./config" + ".json",
 			    type: "GET",
@@ -271,6 +272,10 @@
 				if ( data.base_directory) {
 				    BASE_DIRECTORY = data.base_directory
 				}
+				if ( data.has_no_background) {
+				    HAS_NO_BACKGROUND = data.has_no_background
+				}
+
 			    },
 			    error: function(status) {
 				console.log(status);
