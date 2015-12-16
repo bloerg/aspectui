@@ -97,11 +97,11 @@
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
 
-            <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+            <div class="panel-group" id="spectra_coloring_panel" role="tablist" aria-multiselectable="true">
               <div class="panel panel-default">
                 <div class="panel-heading" role="tab" id="headingOne">
                   <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                    <a data-toggle="collapse" data-parent="#spectra_coloring_panel" href="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
                       Spectra Coloring
                     </a>
                   </h4>
@@ -901,6 +901,7 @@ $(function() {
 
 
     if (HAS_NO_BACKGROUND) {
+	$("#spectra_coloring_panel").hide();
 	spectra_layer.addTo(map);
 	var baseLayers = {
 	    "spectra layer": spectra_layer
