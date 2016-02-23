@@ -206,6 +206,7 @@ $(function() {
 
     //<global>
     MAX_ZOOM = 6;
+    MIN_ZOOM = 0;
     TILE_SIZE = 100;
     MIN_X = 0;
     MIN_Y = MIN_X;
@@ -222,6 +223,9 @@ $(function() {
 	success: function(data) {
 	    if ( data.max_zoom) {
 		MAX_ZOOM = data.max_zoom
+	    }
+	    if ( data.min_zoom) {
+		MIN_ZOOM = data.min_zoom
 	    }
 	    if ( data.tile_size) {
 		TILE_SIZE = data.tile_size
@@ -709,7 +713,7 @@ $(function() {
     
     var map = new L.Map('map', {
 	    center: new L.LatLng(tile2lat(MAX_X / 2, MAX_ZOOM), tile2long(MAX_Y / 2, MAX_ZOOM)),
-	    minZoom: 0,
+	    minZoom: MIN_ZOOM,
 	    maxZoom: MAX_ZOOM,
 	    zoom: 4,
     });
