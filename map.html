@@ -269,16 +269,18 @@ $(function() {
     var overlayLayers = new Object();
     var user_defined_layers = new Object();
 
-    var spectra_layer = new L.tileLayer.canvas({
-	    maxZoom: MAX_ZOOM,
-	    minZoom: Math.max(MAX_ZOOM - 7, 0),
-	    tileSize: TILE_SIZE,
-	    unloadInvisibleTiles: true,
-	    nowrap: true,
-	    bounds: mapbounds,
+    var spectra_layer = new L.GridLayer({
+	maxZoom: MAX_ZOOM,
+	minZoom: Math.max(MAX_ZOOM - 7, 0),
+	tileSize: TILE_SIZE,	
+	unloadInvisibleTiles: true,
+	noWrap: true,
+	bounds: mapbounds,
     });
-
-    spectra_layer.drawTile = function(canvas, tilePoint, zoom) {
+    spectra_layer.createTile = function(tilePoint) {
+	var canvas = L.DomUtil.create('canvas', 'leaflet-tile');
+	canvas.width = TILE_SIZE;
+	canvas.height = TILE_SIZE;
 	var ctx = canvas.getContext('2d');
 	var spectrum_image = new Image();
 	spectrum_image.onload = function() {
@@ -297,21 +299,25 @@ $(function() {
 	    }
 	    ctx.putImageData(spectrum_image, 0, 0)
 	};
-	spectrum_image.src = BASE_DIRECTORY +'/icons/' + zoom + '/' + tilePoint.x+'-'+tilePoint.y+'.png';
+	spectrum_image.src = BASE_DIRECTORY +'/icons/' + tilePoint.z + '/' + tilePoint.x+'-'+ tilePoint.y+'.png';
+	return canvas;
     };
 		
     if (! HAS_NO_BACKGROUND ) {
-	var spec_exist_layer = new L.tileLayer.canvas({
-		maxZoom: MAX_ZOOM,
-		tileSize: TILE_SIZE,
-		unloadInvisibleTiles: true,
-		nowrap: true,
-		bounds: mapbounds,
+	var spec_exist_layer = new L.GridLayer({
+	    maxZoom: MAX_ZOOM,
+	    tileSize: TILE_SIZE,
+	    unloadInvisibleTiles: true,
+	    noWrap: true,
+	    bounds: mapbounds,
 	});
 
-	spec_exist_layer.drawTile = function(canvas, tilePoint, zoom) {
+	spec_exist_layer.createTile = function(tilePoint) {
+	    var canvas = L.DomUtil.create('canvas', 'leaflet-tile');
+	    canvas.width = TILE_SIZE;
+	    canvas.height = TILE_SIZE;
 	    var ctx = canvas.getContext('2d');
-
+	    zoom = tilePoint.z;
 	    var number_of_tiles=Math.pow(2,MAX_ZOOM-zoom)
 	    var real_x = number_of_tiles*tilePoint.x;
 	    var real_y = number_of_tiles*tilePoint.y;
@@ -339,20 +345,25 @@ $(function() {
 		}
 		
 	    });
+	    return canvas;
 	};
 
-	var spec_redshift_layer = new L.tileLayer.canvas({
+	var spec_redshift_layer = new new L.GridLayer({
 		maxZoom: MAX_ZOOM,
 		tileSize: TILE_SIZE,
 		unloadInvisibleTiles: false,
-		nowrap: true,
+		noWrap: true,
 		bounds: mapbounds,
 	});
 
 
 	//FIXME: the ranges for z-bins are hard coded
-	spec_redshift_layer.drawTile = function(canvas, tilePoint, zoom) {
+	spec_redshift_layer.createTile = function(tilePoint) {
+	    var canvas = L.DomUtil.create('canvas', 'leaflet-tile');
+	    canvas.width = TILE_SIZE;
+	    canvas.height = TILE_SIZE;
 	    var ctx = canvas.getContext('2d');
+	    zoom = tilePoint.z;
 
 	    var number_of_tiles=Math.pow(2,MAX_ZOOM-zoom)
 	    var real_x = number_of_tiles*tilePoint.x;
@@ -398,6 +409,7 @@ $(function() {
 
 		}
 	    });
+	    return canvas;
 	};
     };
 
@@ -505,19 +517,23 @@ $(function() {
 	//~ console.log(user_defined_layers);
 
 	user_defined_layers[layer_name] =
-	new L.tileLayer.canvas({
+	new L.GridLayer({
 	    maxZoom: MAX_ZOOM,
 	    tileSize: TILE_SIZE,
 	    unloadInvisibleTiles: false,
-	    nowrap: true,
+	    noWrap: true,
 	    bounds: mapbounds,
 	    user_defined_layer_name: layer_name,
 	    user_defined_layer_color: layer_color,
 	    user_defined_layer_members: []
 	});
-	user_defined_layers[layer_name].drawTile = function(canvas, tilePoint, zoom) {
+	user_defined_layers[layer_name].createTile = function(tilePoint) {
+	    var canvas = L.DomUtil.create('canvas', 'leaflet-tile');
+	    canvas.width = TILE_SIZE;
+	    canvas.height = TILE_SIZE;
 	    var ctx = canvas.getContext('2d');
-	    var layer_name = canvas._layer.options.user_defined_layer_name;
+	    zoom = tilePoint.z;
+	    var layer_name = this.options.user_defined_layer_name;
 	    var number_of_tiles=Math.pow(2,MAX_ZOOM-zoom);
 	    var real_x = number_of_tiles*tilePoint.x;
 	    var real_y = number_of_tiles*tilePoint.y;
@@ -577,6 +593,7 @@ $(function() {
 		    };
 		};
 	    };
+	    return canvas;
 	};
 	
 	
@@ -826,7 +843,6 @@ $(function() {
     map.addControl(selectorControl);            
 
     map.on('draw:created', function (e) {
-	//console.log(e)
 	var type = e.layerType,
 	    layer = e.layer;
 	//drawnItems.clearLayers();
@@ -839,7 +855,7 @@ $(function() {
 	    var maxx = MIN_X;
 	    var maxy = MIN_Y;
 	    for (var i = 0; i<=3; i++) {
-		apoint=layer._latlngs[i];
+		var apoint = layer._latlngs[0][i];
 		var x=long2tile(apoint["lng"],MAX_ZOOM);
 		var y=lat2tile(apoint["lat"],MAX_ZOOM);
 		if (x < minx) { minx = x };
