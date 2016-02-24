@@ -744,14 +744,13 @@ $(function() {
     });
     
     var map = new L.Map('map', {
-	    //center: new L.LatLng(tile2lat(MAX_X / 2, 4), tile2long(MAX_Y / 2, 4)),
-	    center: new L.latLng(0,0),
+	    center: new L.latLng(tile2lat(MAX_Y / 2, 4), tile2long(MAX_X / 2, 4)),
 	    minZoom: MIN_ZOOM,
 	    maxZoom: MAX_ZOOM,
 	    zoom: 4,
 	    crs: L.CRS.Simple
     });
-    map.attributionControl.setPrefix('<a href="http://aspect-ui.de/" target="_blank">ASPECT-ui</a>');
+    map.attributionControl.setPrefix('<a href="https://aspect-ui.de/" target="_blank">ASPECT-ui</a>');
     
 
     var popup = L.popup();
