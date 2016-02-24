@@ -84,7 +84,7 @@
             <li><a href="http://aspect-ui.de/contact/">Contact</a></li>
           </ul>
           
-          <form class="navbar-form navbar-right">
+          <form class="navbar-form navbar-right" id="goto_map_coordinate_input_form">
             <input type="text" class="form-control" placeholder="100, 200" id="goto_map_coordinate_input">
             <button type="button" class="btn btn-default" id="goto_map_coordinate_button">Go!</button>
           </form>
@@ -260,12 +260,6 @@ $(function() {
     //</global>
 
 
-
-    //map bounds
-    var lefttop = L.latLng(tile2lat(MIN_Y,MAX_ZOOM), tile2long(MIN_X,MAX_ZOOM)),
-	rightbottom = L.latLng(tile2lat(MAX_Y, MAX_ZOOM), tile2long(MAX_X, MAX_ZOOM)),
-	mapbounds = L.latLngBounds(lefttop, rightbottom);
-
     // helper functions
     function long2tile(lon,zoom) { 
 	coords = map.project(L.latLng(0,lon))
@@ -277,10 +271,10 @@ $(function() {
     }
     
     function tile2long(x,zoom) {
-      return (L.CRS.Simple.unproject(L.point([x/Math.pow(2,MAX_ZOOM - zoom)/256*2*TILE_SIZE, 0])).lng);
+      return (map.unproject(L.point([x/Math.pow(2,(MAX_ZOOM - zoom))*TILE_SIZE, 0])).lng);
     }
     function tile2lat(y,zoom) {
-      return (L.CRS.Simple.unproject(L.point([0, -y/Math.pow(2,MAX_ZOOM - zoom)/256*2*TILE_SIZE])).lat);
+      return (map.unproject(L.point([0, y/Math.pow(2,(MAX_ZOOM - zoom))*TILE_SIZE])).lat);
     }
     //end helper functions
 
@@ -744,7 +738,8 @@ $(function() {
     });
     
     var map = new L.Map('map', {
-	    center: new L.latLng(tile2lat(MAX_Y / 2, 4), tile2long(MAX_X / 2, 4)),
+	    //center: new L.latLng(tile2lat(MAX_Y / 2, 4), tile2long(MAX_X / 2, 4)),
+	    center: new L.latLng(0,0),
 	    minZoom: MIN_ZOOM,
 	    maxZoom: MAX_ZOOM,
 	    zoom: 4,
@@ -1031,16 +1026,18 @@ $(function() {
 	}
     });
 
-    $( "#goto_map_coordinate_input" ).keypress(function( event ) {
+    $( "#goto_map_coordinate_input_form" ).keypress(function( event ) {
 	if ( event.which == 13 ) {
 	    var xy_array=Papa.parse( $( "#goto_map_coordinate_input" ).val() );
 	    if (xy_array.data.length == 0) {
 		xy_array=Papa.parse( $( "#goto_map_coordinate_input" ).attr("placeholder") );
 		map.panTo( new L.latLng( tile2lat(xy_array.data[0][1],map.getZoom()), tile2long(xy_array.data[0][0],map.getZoom()) ) );
+		return false;
 	    }
 	    else if(xy_array.data[0] && xy_array.data[0].length == 2) {
 		map.panTo( new L.latLng( tile2lat(xy_array.data[0][1],map.getZoom()), tile2long(xy_array.data[0][0],map.getZoom()) ) );
-	    }        
+		return false;
+	    }
 	}
     });
 
