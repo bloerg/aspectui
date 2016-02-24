@@ -269,7 +269,6 @@ $(function() {
     // helper functions
     function long2tile(lon,zoom) { 
 	coords = map.project(L.latLng(0,lon))
-	console.log(coords)
 	return (Math.floor(coords.x * Math.pow(2, MAX_ZOOM - zoom) / TILE_SIZE ) ); 
     }
     function lat2tile (lat,zoom) { 
