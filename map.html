@@ -275,9 +275,9 @@ $(function() {
 	tileSize: TILE_SIZE,	
 	unloadInvisibleTiles: true,
 	noWrap: true,
-	bounds: mapbounds,
     });
     spectra_layer.createTile = function(tilePoint) {
+	console.log(tilePoint)
 	var canvas = L.DomUtil.create('canvas', 'leaflet-tile');
 	canvas.width = TILE_SIZE;
 	canvas.height = TILE_SIZE;
@@ -299,7 +299,7 @@ $(function() {
 	    }
 	    ctx.putImageData(spectrum_image, 0, 0)
 	};
-	spectrum_image.src = BASE_DIRECTORY +'/icons/' + tilePoint.z + '/' + tilePoint.x+'-'+ tilePoint.y+'.png';
+	spectrum_image.src = BASE_DIRECTORY +'/icons/' + tilePoint.z + '/' + tilePoint.x+'-'+ tilePoint.y +'.png';
 	return canvas;
     };
 		
@@ -309,7 +309,6 @@ $(function() {
 	    tileSize: TILE_SIZE,
 	    unloadInvisibleTiles: true,
 	    noWrap: true,
-	    bounds: mapbounds,
 	});
 
 	spec_exist_layer.createTile = function(tilePoint) {
@@ -353,7 +352,6 @@ $(function() {
 		tileSize: TILE_SIZE,
 		unloadInvisibleTiles: false,
 		noWrap: true,
-		bounds: mapbounds,
 	});
 
 
@@ -522,7 +520,6 @@ $(function() {
 	    tileSize: TILE_SIZE,
 	    unloadInvisibleTiles: false,
 	    noWrap: true,
-	    bounds: mapbounds,
 	    user_defined_layer_name: layer_name,
 	    user_defined_layer_color: layer_color,
 	    user_defined_layer_members: []
@@ -733,6 +730,7 @@ $(function() {
 	    minZoom: MIN_ZOOM,
 	    maxZoom: MAX_ZOOM,
 	    zoom: 4,
+	    crs: L.CRS.Simple
     });
     map.attributionControl.setPrefix('<a href="http://aspect-ui.de/" target="_blank">ASPECT-ui</a>');
 
@@ -740,8 +738,9 @@ $(function() {
 
 
     function onMapClick(e) {
-	var som_x = String(long2tile(e.latlng.lng, MAX_ZOOM));
-	var som_y = String(lat2tile(e.latlng.lat, MAX_ZOOM));
+	var coords = map.project(e.latlng)
+	var som_x = String(long2tile(coords.x, map.getZoom()));
+	var som_y = String(lat2tile(coords.y, map.getZoom()));
 	var SOM_keys = [{'som_x':som_x,'som_y':som_y}];
 	$.ajax({
 	    url: BASE_DIRECTORY + "/specmetadata/" + som_x + "-" + som_y + ".json",
@@ -750,8 +749,11 @@ $(function() {
 	    success: function(sdss_data) {
 		//~ if (sdss_data.length > 0 && sdss_data[0].mjd && sdss_data[0].plateid && sdss_data[0].fiberid) {
 		if (sdss_data['mjd']) var mjd = sdss_data['mjd']
+		else mjd = -1
 		if (sdss_data['plateid']) var plateid = sdss_data['plateid']
+		else plateid = -1
 		if (sdss_data['fiberid']) var fiberid = sdss_data['fiberid']
+		else fiberid = -1
 		if (sdss_data['som_x']) var som_x = sdss_data['som_x']
 		if (sdss_data['som_y']) var som_y = sdss_data['som_y']
 		if (sdss_data['sdsslink']) {
@@ -759,13 +761,21 @@ $(function() {
 			'<a id="a_sdsslink" href="' + sdss_data['sdsslink']
 			+ '" target="_blank">Explore</a>'
 		}
+		else sdss_link = ""
+		if (mjd != -1 && plateid != -1 && fiberid != -1) {
+		    var zshift_link = 
+			'<a id="a_zshiftlink" href="https://aspect-ui.de/zshift/zshift.html?mjd=' + mjd + '&fiber=' + fiberid + '&plateid=' + plateid
+			+ '" target="_blank">zshift</a>'
+		}
+		else zshift_link = ""
+
 		if (sdss_data['mjd'] && mjd == -1) {
 		    var popupstring="X: " + som_x + ", Y: " + som_y + " ~ Here be dragons!"
 		}
 		else {
 		
 		    var mpf = mjd + "-" + plateid + "-" + fiberid
-		    var popupstring = "X: " + som_x +", Y: " + som_y + ",<br />MJD-Plateid-Fiberid: " + mpf + ",<br />" + sdss_link
+		    var popupstring = "X: " + som_x +", Y: " + som_y + ",<br />MJD-Plateid-Fiberid: " + mpf + ",<br />" + sdss_link + " | " + zshift_link
 		}	    
 		popup
 		    .setLatLng(e.latlng)
@@ -775,8 +785,9 @@ $(function() {
 		//close popup on link click and add clicked object to user defined layer 'Explorer click'
 		$('#a_sdsslink').click( function() {
 		    var popup_latlng = popup.getLatLng()
-		    var popup_x = String(long2tile(popup_latlng.lng, MAX_ZOOM));
-		    var popup_y = String(lat2tile(popup_latlng.lat, MAX_ZOOM));
+		    var coords = map.project(popup.latlng)
+		    var popup_x = String(long2tile(coords.x, map.getZoom()));
+		    var popup_y = String(lat2tile(coords.y, map.getZoom()));
 		    //<FIXME> Doppelter Code (siehe bei rectangle selection)
 		    if (popup_x >= MIN_X && popup_x <= MAX_X && popup_y >= MIN_Y && popup_y <= MAX_Y) {
 			if (user_defined_layers['Explorer Click'].options.user_defined_layer_members[popup_x]) {
@@ -818,7 +829,18 @@ $(function() {
 
 
 
-    mousePositionControl = new L.control.mousePosition({lngFormatter: function(lng) { return long2tile(lng, MAX_ZOOM)}, latFormatter: function(lat) {return lat2tile(lat, MAX_ZOOM)}, lngFirst: true});
+    mousePositionControl = new L.control.mousePosition({
+	lngFormatter: function(lng) {
+	    var coords = map.project(L.latLng(0,lng))
+	    return long2tile(coords.x, map.getZoom())
+	}, 
+	latFormatter: function(lat) {
+	    var coords = map.project(L.latLng(lat,0))
+	    return lat2tile(coords.y, map.getZoom())
+	}, 
+	lngFirst: true
+    });
+    //~ mousePositionControl = new L.control.mousePosition();
     mousePositionControl.addTo(map);
 
 //the selectors
@@ -855,9 +877,9 @@ $(function() {
 	    var maxx = MIN_X;
 	    var maxy = MIN_Y;
 	    for (var i = 0; i<=3; i++) {
-		var apoint = layer._latlngs[0][i];
-		var x=long2tile(apoint["lng"],MAX_ZOOM);
-		var y=lat2tile(apoint["lat"],MAX_ZOOM);
+		var apoint = map.project(layer._latlngs[0][i]);
+		var x=long2tile(apoint.x,map.getZoom());
+		var y=lat2tile(apoint.y,map.getZoom());
 		if (x < minx) { minx = x };
 		if (x >= maxx) { maxx = x };
 		if (y < miny) { miny = y };
@@ -885,9 +907,9 @@ $(function() {
 	};
 	
 	if (type === 'marker') {
-	    apoint=layer._latlng;
-	    var x=long2tile(apoint["lng"],MAX_ZOOM);
-	    var y=lat2tile(apoint["lat"],MAX_ZOOM);
+	    apoint=map.project(layer._latlng);
+	    var x=long2tile(apoint.x,map.getZoom());
+	    var y=lat2tile(apoint.y,map.getZoom());
 	    
 	    var user_selection_layer_name = 'default';
 	    var active_user_selection_layer_number = $( "#user_selection_layers" ).accordion( "option", "active" );
