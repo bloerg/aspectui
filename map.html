@@ -779,7 +779,7 @@ $(function() {
 		else sdss_link = ""
 		if (mjd != -1 && plateid != -1 && fiberid != -1) {
 		    var zshift_link = 
-			'<a id="a_zshiftlink" href="https://aspect-ui.de/zshift/zshift.html?mjd=' + mjd + '&fiber=' + fiberid + '&plateid=' + plateid
+			'| <a id="a_zshiftlink" href="https://aspect-ui.de/zshift/zshift.html?mjd=' + mjd + '&fiber=' + fiberid + '&plateid=' + plateid
 			+ '" target="_blank">zshift</a>'
 		}
 		else zshift_link = ""
@@ -790,7 +790,7 @@ $(function() {
 		else {
 		
 		    var mpf = mjd + "-" + plateid + "-" + fiberid
-		    var popupstring = "X: " + som_x +", Y: " + som_y + ",<br />MJD-Plateid-Fiberid: " + mpf + ",<br />" + sdss_link + " | " + zshift_link
+		    var popupstring = "X: " + som_x +", Y: " + som_y + ",<br />MJD-Plateid-Fiberid: " + mpf + ",<br />" + sdss_link + zshift_link
 		}	    
 		popup
 		    .setLatLng(e.latlng)
