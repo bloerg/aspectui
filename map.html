@@ -484,7 +484,6 @@ $(function() {
 			async: false,
 			success: function(data) {
 			    //~ if ( data.som_x && data.som_y) {
-				console.log(data)
 				var x = data.som_x;
 				var y = data.som_y;
 				//FIXME: doppelter code (siehe rectangular marker)
@@ -755,7 +754,6 @@ $(function() {
 	//~ var coords = map.project(e.latlng)
 	var som_x = long2tile(e.latlng.lng, map.getZoom());
 	var som_y = lat2tile(e.latlng.lat, map.getZoom());
-	console.log(e.latlng, "som_x", som_x, "som_y", som_y)
 	var SOM_keys = [{'som_x':som_x,'som_y':som_y}];
 	$.ajax({
 	    url: BASE_DIRECTORY + "/specmetadata/" + som_x + "-" + som_y + ".json",
