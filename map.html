@@ -468,7 +468,9 @@ $(function() {
 
 	    if ($.inArray("mjd", csv_import.meta.fields) > -1 && 
 		$.inArray("plateid", csv_import.meta.fields) > -1 &&
-		$.inArray("fiberid", csv_import.meta.fields) > -1
+		$.inArray("fiberid", csv_import.meta.fields) > -1 &&
+		$.inArray("som_x", csv_import.meta.fields) == -1 &&
+		$.inArray("som_y", csv_import.meta.fields) == -1
 	    )
 	    { 
 		$.each(csv_import.data, function(key, sdss_ids) {
