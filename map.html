@@ -798,9 +798,8 @@ $(function() {
 		//close popup on link click and add clicked object to user defined layer 'Explorer click'
 		$('#a_sdsslink').click( function() {
 		    var popup_latlng = popup.getLatLng()
-		    //~ var coords = map.project(popup.latlng)
-		    var popup_x = String(long2tile(popup.latlng.lng, map.getZoom()));
-		    var popup_y = String(lat2tile(popup.latlng.lat, map.getZoom()));
+		    var popup_x = String(long2tile(popup_latlng.lng, map.getZoom()));
+		    var popup_y = String(lat2tile(popup_latlng.lat, map.getZoom()));
 		    //<FIXME> Doppelter Code (siehe bei rectangle selection)
 		    if (popup_x >= MIN_X && popup_x <= MAX_X && popup_y >= MIN_Y && popup_y <= MAX_Y) {
 			if (user_defined_layers['Explorer Click'].options.user_defined_layer_members[popup_x]) {
