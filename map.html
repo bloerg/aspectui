@@ -479,36 +479,72 @@ $(function() {
 		    var plateid=sdss_ids.plateid;
 		    var fiberid=sdss_ids.fiberid;
 
-		    $.ajax({
-			url: BASE_DIRECTORY + "/idmapping/" + mjd + "-" + plateid + "-" + fiberid + ".json",
-			type: "GET",
-			dataType: "json",
-			async: false,
-			success: function(data) {
-			    //~ if ( data.som_x && data.som_y) {
-				var x = data.som_x;
-				var y = data.som_y;
-				//FIXME: doppelter code (siehe rectangular marker)
-				if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x]) {
-				    if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y]) {
-					delete user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y];
-				    }
-				    else user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
-				}
-				else {
-				    user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x] = [];
-				    //FIXME: doppelter code, siehe ein paar Zeilen vorher
-				    user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;					    
-				};
-				//FIXME: doppelter code wie bei rectangular marker zu Ende
+		    //$.ajax({
+			//url: BASE_DIRECTORY + "/idmapping/" + mjd + "-" + plateid + "-" + fiberid + ".json",
+			//type: "GET",
+			//dataType: "json",
+			//async: false,
+			//success: function(data) {
+			    ////~ if ( data.som_x && data.som_y) {
+				//var x = data.som_x;
+				//var y = data.som_y;
+				////FIXME: doppelter code (siehe rectangular marker)
+				//if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x]) {
+				    //if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y]) {
+					//delete user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y];
+				    //}
+				    //else user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
+				//}
+				//else {
+				    //user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x] = [];
+				    ////FIXME: doppelter code, siehe ein paar Zeilen vorher
+				    //user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;					    
+				//};
+				////FIXME: doppelter code wie bei rectangular marker zu Ende
 
-			    //~ }
+			    ////~ }
+
+			//},
+			//error: function(status) {
+			    //console.log(status);
+			//}
+		    //});
+		    console.log(BASE_DIRECTORY);
+		    var URL="../../" + BASE_DIRECTORY + "/idmapping.csv";
+		    console.log(URL);
+		    Papa.parse(URL, {
+			download: true,
+			delimiter: ",",
+			header: true,
+			dynamicTyping: true,
+			worker: true,
+			step: function(data, parser) {
+			    ////~ if ( data.som_x && data.som_y) {
+				//var x = data.som_x;
+				//var y = data.som_y;
+				////FIXME: doppelter code (siehe rectangular marker)
+				//if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x]) {
+				    //if (user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y]) {
+					//delete user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y];
+				    //}
+				    //else user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;
+				//}
+				//else {
+				    //user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x] = [];
+				    ////FIXME: doppelter code, siehe ein paar Zeilen vorher
+				    //user_defined_layers[active_user_selection_layer_name].options.user_defined_layer_members[x][y] = true;					    
+				//};
+				////FIXME: doppelter code wie bei rectangular marker zu Ende
+
+			    ////~ }
+			  console.log(mjd,plateid,fiberid);
+			  console.log(data.data[0].fiberid);
+  
 
 			},
-			error: function(status) {
-			    console.log(status);
+			preview: 10
 			}
-		    });
+		    );
 		});
 	    };
 	};
@@ -776,7 +812,9 @@ $(function() {
 			'<a id="a_sdsslink" href="' + sdss_data['sdsslink']
 			+ '" target="_blank">Explore</a>'
 		}
-		else sdss_link = ""
+		else sdss_link = 
+		    '<a id="a_sdsslink" href="http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?plate=' + plateid + '&mjd=' + mjd + '&fiber=' + fiberid 
+			+ '" target="_blank">Explore</a>'
 		if (mjd != -1 && plateid != -1 && fiberid != -1) {
 		    var zshift_link = 
 			'| <a id="a_zshiftlink" href="https://aspect-ui.de/zshift/zshift.html?mjd=' + mjd + '&fiber=' + fiberid + '&plateid=' + plateid
@@ -854,6 +892,24 @@ $(function() {
     });
     //~ mousePositionControl = new L.control.mousePosition();
     mousePositionControl.addTo(map);
+    
+    
+//~ var MyControl = L.Control.extend({
+    //~ options: {
+        //~ position: 'topright'
+    //~ },
+
+    //~ onAdd: function (map) {
+        //~ // create the control container with a particular class name
+        //~ var container = L.DomUtil.create('div', 'my-custom-control');
+
+        //~ // ... initialize other DOM elements, add listeners, etc.
+
+        //~ return container;
+    //~ }
+//~ });
+//~ MyControl.addTo(map);
+    
 
 //the selectors
 
