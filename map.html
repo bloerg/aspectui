@@ -16,7 +16,6 @@
     <script src="./map/js/leaflet.draw.js"></script>
     <script src="./map/js/L.Control.MousePosition.js"></script>
     <script src="./map/js/helper_functions.js"></script>
-    <script src="./map/js/spectrahandlingfunctions.js"></script>
     <script src="./map/js/papaparse.min.js"></script>
  
  
@@ -800,11 +799,11 @@ $(function() {
 	    success: function(sdss_data) {
 		//~ if (sdss_data.length > 0 && sdss_data[0].mjd && sdss_data[0].plateid && sdss_data[0].fiberid) {
 		if (sdss_data['mjd']) var mjd = sdss_data['mjd']
-		else mjd = -1
+		else var mjd = -1
 		if (sdss_data['plateid']) var plateid = sdss_data['plateid']
-		else plateid = -1
+		else var plateid = -1
 		if (sdss_data['fiberid']) var fiberid = sdss_data['fiberid']
-		else fiberid = -1
+		else var fiberid = -1
 		if (sdss_data['som_x']) var som_x = sdss_data['som_x']
 		if (sdss_data['som_y']) var som_y = sdss_data['som_y']
 		if (sdss_data['sdsslink']) {
@@ -812,7 +811,7 @@ $(function() {
 			'<a id="a_sdsslink" href="' + sdss_data['sdsslink']
 			+ '" target="_blank">Explore</a>'
 		}
-		else sdss_link = 
+		else var sdss_link = 
 		    '<a id="a_sdsslink" href="http://skyserver.sdss.org/dr12/en/tools/explore/summary.aspx?plate=' + plateid + '&mjd=' + mjd + '&fiber=' + fiberid 
 			+ '" target="_blank">Explore</a>'
 		if (mjd != -1 && plateid != -1 && fiberid != -1) {
@@ -820,9 +819,9 @@ $(function() {
 			'| <a id="a_zshiftlink" href="https://aspect-ui.de/zshift/zshift.html?mjd=' + mjd + '&fiber=' + fiberid + '&plateid=' + plateid
 			+ '" target="_blank">zshift</a>'
 		}
-		else zshift_link = ""
+		else var zshift_link = ""
 
-		if (sdss_data['mjd'] && mjd == -1) {
+		if (mjd == -1) {
 		    var popupstring="X: " + som_x + ", Y: " + som_y + " ~ Here be dragons!"
 		}
 		else {
