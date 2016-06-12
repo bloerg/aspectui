@@ -978,9 +978,6 @@ $(function() {
     
     
     
-    //initialize colors
-    $("#foreground_color_input_field").css("color", $("#foreground_color_input_field").attr("placeholder"));
-    $("#background_color_input_field").css("color", $("#background_color_input_field").attr("placeholder"));
 
 //<user interface>
 		
@@ -996,19 +993,57 @@ $(function() {
     $("#set_spectrum_foreground_color_button").click(function() {
 	var color_to_set = $("#foreground_color_input_field").val()
 	if (color_to_set == "" ) {
-	    $("#foreground_color_input_field").css("color", $("#foreground_color_input_field").attr("placeholder"));
+	    $("#foreground_color_input_field").css("background-color", $("#foreground_color_input_field").attr("placeholder"));
 	}
 	else {
-	    $("#foreground_color_input_field").css("color", $("#foreground_color_input_field").val())
+	    $("#foreground_color_input_field").css("background-color", $("#foreground_color_input_field").val())
 	}
+	
+	// determine lightness of the input fields background color and change font color accordingly
+	var rgb_background = $("#foreground_color_input_field").css("background-color").replace(/^rgba?\(|\s+|\)$/g,'').split(',');
+	var c=0
+	for (i=0; i<3; i++) {
+	    c = rgb_background[i] /255.0
+	    if ( c <= 0.03928) c = c/12.92 
+	    else c = Math.pow((c+0.055)/1.055, 2.4)
+	    rgb_background[i] = c
+	}
+	L = 0.2126 * rgb_background[0] + 0.7152 * rgb_background[1] + 0.0722 * rgb_background[2]
+	if (L > 0.179) $("#foreground_color_input_field").css("color", "black")
+	else $("#foreground_color_input_field").css("color", "white")
+	
+	if ( map.hasLayer(spectra_layer) ) {
+	    map.removeLayer(spectra_layer)
+	    map.addLayer(spectra_layer)
+	}
+	
     }); 
     $("#set_spectrum_background_color_button").click(function() {
 	var color_to_set = $("#background_color_input_field").val()
 	if (color_to_set == "" ) {
-	    $("#background_color_input_field").css("color", $("#background_color_input_field").attr("placeholder"));
+	    $("#background_color_input_field").css("background-color", $("#background_color_input_field").attr("placeholder"));
 	}
 	else {
-	    $("#background_color_input_field").css("color", $("#background_color_input_field").val())
+	    $("#background_color_input_field").css("background-color", $("#background_color_input_field").val())
+	}
+
+	// determine lightness of the input fields background color and change font color accordingly
+	var rgb_background = $("#background_color_input_field").css("background-color").replace(/^rgba?\(|\s+|\)$/g,'').split(',');
+	var c=0
+	for (i=0; i<3; i++) {
+	    c = rgb_background[i] /255.0
+	    if ( c <= 0.03928) c = c/12.92 
+	    else c = Math.pow((c+0.055)/1.055, 2.4)
+	    rgb_background[i] = c
+	}
+	L = 0.2126 * rgb_background[0] + 0.7152 * rgb_background[1] + 0.0722 * rgb_background[2]
+	if (L > 0.179) $("#background_color_input_field").css("color", "black")
+	else $("#background_color_input_field").css("color", "white")
+
+
+	if ( map.hasLayer(spec_exist_layer) ) {
+	    map.removeLayer(spec_exist_layer)
+	    map.addLayer(spec_exist_layer)
 	}
     });
 
