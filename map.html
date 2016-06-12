@@ -315,47 +315,34 @@ $(function() {
     };
 		
     if (! HAS_NO_BACKGROUND ) {
-	var spec_exist_layer = new L.GridLayer({
-	    maxZoom: MAX_ZOOM,
-	    tileSize: TILE_SIZE,
-	    unloadInvisibleTiles: true,
-	    noWrap: true,
+	var spec_exist_layer = new L.tileLayer.canvas({
+		maxZoom: MAX_ZOOM,
+		tileSize: TILE_SIZE,
+		unloadInvisibleTiles: true,
+		nowrap: true,
+		bounds: mapbounds,
 	});
 
-	spec_exist_layer.createTile = function(tilePoint) {
-	    var canvas = L.DomUtil.create('canvas', 'leaflet-tile');
-	    canvas.width = TILE_SIZE;
-	    canvas.height = TILE_SIZE;
+	spec_exist_layer.drawTile = function(canvas, tilePoint, zoom) {
 	    var ctx = canvas.getContext('2d');
-	    zoom = tilePoint.z;
-	    var number_of_tiles=Math.pow(2,MAX_ZOOM-zoom)
-	    var real_x = number_of_tiles*tilePoint.x;
-	    var real_y = number_of_tiles*tilePoint.y;
-
-
-	    var SOM_key_range={'left':real_x, 'right':real_x+number_of_tiles, 'top':real_y, 'bottom':real_y+number_of_tiles}
-	    $.ajax({
-		url: BASE_DIRECTORY + "/datalayers/z/" + zoom + "/" + tilePoint.x + "-" + tilePoint.y + ".json",
-		type: "GET",
-		dataType: "json",
-		success: function(json) {
-		    if (json.data) {
-			for (var i=0;i<json.data.length;i++) {
-			    var rescale=Math.pow(0.5,(MAX_ZOOM-zoom));
-			    var xshift=json.data[i].x-real_x;
-			    var yshift=json.data[i].y-real_y;
-			    //fill background
-
-			    ctx.setTransform(rescale,0,0,rescale,TILE_SIZE*rescale*(xshift),TILE_SIZE*rescale*(yshift));
-			    ctx.fillStyle = $("#background_color_input_field").css("color");
-			    ctx.fillRect(2,2,TILE_SIZE-4,TILE_SIZE-4);
-			};
-		    };
-
+	    var spectrum_image = new Image();
+	    spectrum_image.onload = function() {
+		ctx.drawImage(this, 0, 0);
+		var spectrum_image = ctx.getImageData(0,0,canvas.width, canvas.height);
+		if (! HAS_NO_BACKGROUND ) {
+		    var spectrum_image_pixels = spectrum_image.data;
+		    var rgb_background = $("#background_color_input_field").css("background-color").replace(/^rgba?\(|\s+|\)$/g,'').split(',');
+		    for (var pixel_index = 0; pixel_index < spectrum_image_pixels.length; pixel_index += 4) {
+			if (spectrum_image_pixels[pixel_index + 3] > 0) {
+			    spectrum_image_pixels[pixel_index] = rgb_background[0]
+			    spectrum_image_pixels[pixel_index + 1] = rgb_background[1]
+			    spectrum_image_pixels[pixel_index + 2] = rgb_background[2]
+			}
+		    }
 		}
-		
-	    });
-	    return canvas;
+		ctx.putImageData(spectrum_image, 0, 0)
+	    };
+	    spectrum_image.src = BASE_DIRECTORY +'/redshift/' + zoom + '/' + tilePoint.x+'-'+tilePoint.y+'.png';
 	};
 
 	var spec_redshift_layer = new new L.GridLayer({
